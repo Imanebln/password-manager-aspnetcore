@@ -1,3 +1,4 @@
+using AuthenticationService;
 using Data.Models;
 using Data.Settings;
 using Serilog;
@@ -17,7 +18,8 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
         (
             mongoDbConfig.ConnectionString, mongoDbConfig.Name
         );
-
+builder.Services.AddScoped<ITokensManager,TokensManager>();
+builder.Services.AddHttpContextAccessor();
 //creating a logger from configuration
 var logger = new LoggerConfiguration()
   .ReadFrom.Configuration(builder.Configuration)
@@ -39,7 +41,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
