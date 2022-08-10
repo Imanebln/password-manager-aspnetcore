@@ -1,5 +1,8 @@
 using Serilog;
 
+using PasswordEncryption.Contracts;
+using PasswordEncryption.Impl;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -19,6 +22,9 @@ builder.Logging.ClearProviders();
 
 //Adding serilog as a logger
 builder.Logging.AddSerilog(logger);
+
+// Dependency Injection goes here
+builder.Services.AddScoped<ISymmetricEncryptDecrypt, SymmetricEncryptDecrypt>();
 
 var app = builder.Build();
 
