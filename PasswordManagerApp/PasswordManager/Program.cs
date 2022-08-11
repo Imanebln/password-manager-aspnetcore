@@ -1,3 +1,6 @@
+using AuthenticationService;
+using Data.Models;
+using Data.Settings;
 using Serilog;
 
 using PasswordEncryption.Contracts;
@@ -11,7 +14,15 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+var mongoDbConfig = builder.Configuration.GetSection(nameof(MongoDbConfig)).Get<MongoDbConfig>();
 
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+        .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
+        (
+            mongoDbConfig.ConnectionString, mongoDbConfig.Name
+        );
+builder.Services.AddScoped<ITokensManager,TokensManager>();
+builder.Services.AddHttpContextAccessor();
 //creating a logger from configuration
 var logger = new LoggerConfiguration()
   .ReadFrom.Configuration(builder.Configuration)
@@ -36,7 +47,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
