@@ -1,6 +1,7 @@
 ﻿using AuthenticationService;
 using AuthenticationService.Models;
 using Data.Models;
+using EmailingService.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +15,14 @@ namespace PasswordManager.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITokensManager _tokensManager;
+        private readonly IEmailService _emailService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager)
+        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokensManager = tokensManager;
+            _emailService = emailService;
         }
 
         [HttpPost("signup")]
@@ -45,8 +48,9 @@ namespace PasswordManager.Controllers
                         await _userManager.AddToRoleAsync(appUser, UserRoles.REGULAR);
                     }
                     
+                    await _emailService.EmailValidation(appUser);
 
-                    return Ok("User Created Successfully");
+                    return Ok("User Created Successfully, please confirm email");
                 }                  
                 else
                 {
@@ -82,6 +86,23 @@ namespace PasswordManager.Controllers
             }
 
             return BadRequest(ModelState);
+        }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string token,string email)
+        {
+            //check if user exists
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user is null)
+                return NotFound("User not found");
+
+           var result =  await _userManager.ConfirmEmailAsync(user, token);
+
+            if (result.Succeeded)
+                return Ok("Email confirmed");
+
+            return BadRequest("Could not confirm email");
+
         }
     }
 }

@@ -7,6 +7,7 @@ using PasswordEncryption.Impl;
 using EmailingService.Contracts;
 using EmailingService.Impl;
 using Data.Models.Email;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +19,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var mongoDbConfig = builder.Configuration.GetSection(nameof(MongoDbConfig)).Get<MongoDbConfig>();
 
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
+    opt => {
+        opt.SignIn.RequireConfirmedEmail = true;
+
+    })
         .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
         (
             mongoDbConfig.ConnectionString, mongoDbConfig.Name
-        );
+        ).AddDefaultTokenProviders();
+
 builder.Services.AddScoped<ITokensManager,TokensManager>();
 builder.Services.AddHttpContextAccessor();
 //creating a logger from configuration

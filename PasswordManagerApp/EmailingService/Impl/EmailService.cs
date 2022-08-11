@@ -19,10 +19,10 @@ namespace EmailingService.Impl
         }
         public async Task SendEmailAsync(Email email)
         {
-            // for testing
-            email.From = _emailConfiguration.From;
-            email.To = "boulouane.imane@gmail.com";
-            email.Content = "Please validate your email!";
+            //// for testing
+            //email.From = _emailConfiguration.From;
+            //email.To = "boulouane.imane@gmail.com";
+            //email.Content = "Please validate your email!";
             var emailMessage = CreateEmailMessage(email);
 
             await SendAsync(emailMessage);
@@ -30,15 +30,16 @@ namespace EmailingService.Impl
         // Email Validation
         public async Task<string> EmailValidation(ApplicationUser user)
         {
-            var token = HttpUtility.UrlEncode(await _userManager.GetSecurityStampAsync(user));
+            //Generate confirmation token
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
             // redirect user to login page
-            var confirmationLink = "https://localhost:7077/api/Accounts/EmailValidation?token=" + token + "&email=" + user.Email;
+            var confirmationLink = "https://localhost:7077/api/Accounts/confirm-email?token=" + token + "&email=" + user.Email;
             Email email = new()
             {
                 To = user.Email,
-                Subject = "Email Validation",
-                Content = confirmationLink,
+                Subject = "Email Confirmation",
+                Content = string.Format("Confirm your email, please click this link: {0}", confirmationLink),
                 From = _emailConfiguration.From
             };
             await SendEmailAsync(email);
