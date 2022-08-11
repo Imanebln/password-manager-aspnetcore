@@ -15,30 +15,31 @@ namespace PasswordManager.Controllers
             _symmetricEncryptDecrypt = symmetricEncryptDecrypt;
         }
 
-        /*[HttpGet("EncryptPassword")]
-        public string EncryptPassword(string password)
+        [HttpGet("GetSymmetricKey")]
+        public (string Key, string IVBase64) GetSymmetricKey()
         {
-            var (Key, IVBase64) = _symmetricEncryptDecrypt.InitializeSymmetricEncryptionKeyIV();
-            Console.WriteLine("Your password before encryption: "+password);
-            Console.WriteLine("Your symmetric key and IV: "+(Key, IVBase64));
-            Console.WriteLine("Your encrypted password is: " + _symmetricEncryptDecrypt.Encrypt(password, IVBase64, Key));
-            return _symmetricEncryptDecrypt.Encrypt(password, IVBase64, Key);
+            var (Key, IVBase64) = _symmetricEncryptDecrypt.InitSymmetricEncryptionKeyIV();
+            Console.WriteLine("Your symmetric key and IV: " + (Key, IVBase64));
+            return (Key,IVBase64);
+        }
 
-        }*/
-        [HttpGet("Encrypt")]
-        public void Encrypt(string password)
+        [HttpGet("EncryptPassword")]
+        public string EncryptPassword(string password,string Key,string IVBase64)
         {
-            var key = _symmetricEncryptDecrypt.InitializeSymmetricEncryptionKeyIV();
-            _symmetricEncryptDecrypt.InitSymmetricEncryptionKeyIV(password,key);
+            /*var (Key, IVBase64) = _symmetricEncryptDecrypt.InitSymmetricEncryptionKeyIV();*/
+            Console.WriteLine("Your password before encryption: " + password);
+            Console.WriteLine("Your symmetric key and IV: " + (Key,IVBase64));
+            var encryptedPassord = _symmetricEncryptDecrypt.Encrypt(password, IVBase64, Key);
+            Console.WriteLine("Your encrypted password is: " + encryptedPassord);
+            return encryptedPassord;
         }
 
         [HttpPost("DecryptPassword")]
         public string DecryptPassword(DecryptModel decryptModel)
         {
-            Console.WriteLine("Your password after decryption: " + _symmetricEncryptDecrypt.Decrypt(decryptModel.EncryptedPassword, decryptModel.IVBase64, decryptModel.Key));
-            return _symmetricEncryptDecrypt.Decrypt(decryptModel.EncryptedPassword, decryptModel.IVBase64, decryptModel.Key);
-    
-        }
+            var decryptedPassword = _symmetricEncryptDecrypt.Decrypt(decryptModel.EncryptedPassword, decryptModel.IVBase64, decryptModel.Key);
+            Console.WriteLine("Your password after decryption: " + decryptedPassword);
+            return decryptedPassword;        }
 
     }
 }
