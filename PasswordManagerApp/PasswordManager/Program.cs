@@ -2,9 +2,10 @@ using AuthenticationService;
 using Data.Models;
 using Data.Settings;
 using Serilog;
-
 using PasswordEncryption.Contracts;
 using PasswordEncryption.Impl;
+using EmailingService.Contracts;
+using EmailingService.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,7 @@ builder.Logging.AddSerilog(logger);
 
 // Dependency Injection goes here
 builder.Services.AddScoped<ISymmetricEncryptDecrypt, SymmetricEncryptDecrypt>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
