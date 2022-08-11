@@ -15,7 +15,7 @@ namespace PasswordManager.Controllers
             _symmetricEncryptDecrypt = symmetricEncryptDecrypt;
         }
 
-        [HttpGet("EncryptPassword")]
+        /*[HttpGet("EncryptPassword")]
         public string EncryptPassword(string password)
         {
             var (Key, IVBase64) = _symmetricEncryptDecrypt.InitializeSymmetricEncryptionKeyIV();
@@ -23,7 +23,13 @@ namespace PasswordManager.Controllers
             Console.WriteLine("Your symmetric key and IV: "+(Key, IVBase64));
             Console.WriteLine("Your encrypted password is: " + _symmetricEncryptDecrypt.Encrypt(password, IVBase64, Key));
             return _symmetricEncryptDecrypt.Encrypt(password, IVBase64, Key);
-            
+
+        }*/
+        [HttpGet("Encrypt")]
+        public void Encrypt(string password)
+        {
+            var key = _symmetricEncryptDecrypt.InitializeSymmetricEncryptionKeyIV();
+            _symmetricEncryptDecrypt.InitSymmetricEncryptionKeyIV(password,key);
         }
 
         [HttpPost("DecryptPassword")]
