@@ -1,22 +1,48 @@
-﻿using Data.Models.Email;
+﻿using Data.Models;
+using Data.Models.Email;
 using EmailingService.Contracts;
 using MailKit.Net.Smtp;
+using Microsoft.AspNetCore.Identity;
 using MimeKit;
+using System.Web;
 
 namespace EmailingService.Impl
 {
     public class EmailService : IEmailService
     {
         protected readonly EmailConfiguration _emailConfiguration;
-        public EmailService(EmailConfiguration emailConfiguration)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public EmailService(EmailConfiguration emailConfiguration, UserManager<ApplicationUser> userManager)
         {
             _emailConfiguration = emailConfiguration;
+            _userManager = userManager;
         }
         public async Task SendEmailAsync(Email email)
         {
+            // for testing
+            email.From = _emailConfiguration.From;
+            email.To = "boulouane.imane@gmail.com";
+            email.Content = "Please validate your email!";
             var emailMessage = CreateEmailMessage(email);
 
             await SendAsync(emailMessage);
+        }
+        // Email Validation
+        public async Task<string> EmailValidation(ApplicationUser user)
+        {
+            var token = HttpUtility.UrlEncode(await _userManager.GetSecurityStampAsync(user));
+
+            // redirect user to login page
+            var confirmationLink = "https://localhost:7077/api/Accounts/EmailValidation?token=" + token + "&email=" + user.Email;
+            Email email = new()
+            {
+                To = user.Email,
+                Subject = "Email Validation",
+                Content = confirmationLink,
+                From = _emailConfiguration.From
+            };
+            await SendEmailAsync(email);
+            return "Success!";
         }
 
         //Create email message
