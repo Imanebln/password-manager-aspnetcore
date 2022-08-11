@@ -34,12 +34,15 @@ namespace EmailingService.Impl
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
             // redirect user to login page
+            token = HttpUtility.UrlEncode(token);
             var confirmationLink = "https://localhost:7077/api/Accounts/confirm-email?token=" + token + "&email=" + user.Email;
+            
             Email email = new()
             {
                 To = user.Email,
                 Subject = "Email Confirmation",
-                Content = string.Format("Confirm your email, please click this link: {0}", confirmationLink),
+                Content = string.Format("<h2 style='color: red;'>Confirm your email, please click this link:</h2>"),
+                Link = confirmationLink,
                 From = _emailConfiguration.From
             };
             await SendEmailAsync(email);
@@ -54,7 +57,8 @@ namespace EmailingService.Impl
             emailMessage.From.Add(new MailboxAddress(_emailConfiguration.DisplayName, _emailConfiguration.From));
             emailMessage.To.Add(MailboxAddress.Parse(email.To));
             emailMessage.Subject = email.Subject;
-            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = email.Content + "\n" + email.Link };
+            //emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = email.Content + "\n" + email.Link };
+            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = string.Format("<h2 style='color:red;'>{0}</h2> <a href='{1}'>Click here</a>", email.Content,email.Link) };
             return emailMessage;
         }
         //Send message async

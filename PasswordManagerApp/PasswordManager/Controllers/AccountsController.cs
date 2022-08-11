@@ -5,6 +5,7 @@ using EmailingService.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Web;
 
 namespace PasswordManager.Controllers
 {
@@ -16,13 +17,15 @@ namespace PasswordManager.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITokensManager _tokensManager;
         private readonly IEmailService _emailService;
+        private readonly ILogger<AccountsController> _logger;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService)
+        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokensManager = tokensManager;
             _emailService = emailService;
+            _logger = logger;
         }
 
         [HttpPost("signup")]
@@ -30,12 +33,13 @@ namespace PasswordManager.Controllers
         {
             if (ModelState.IsValid)
             {
-                ApplicationUser appUser = new ApplicationUser
+                ApplicationUser appUser = new()
                 {
                     UserName = userDto.Username,
                     Email = userDto.Email
                 };
 
+                _logger.LogInformation("Attemting to create a user");
                 var creatingUser = await _userManager.CreateAsync(appUser, userDto.Password);
                 if (creatingUser.Succeeded)
                 {
@@ -47,7 +51,8 @@ namespace PasswordManager.Controllers
                     {
                         await _userManager.AddToRoleAsync(appUser, UserRoles.REGULAR);
                     }
-                    
+
+                    _logger.LogInformation("Sending confirmation Email");
                     await _emailService.EmailValidation(appUser);
 
                     return Ok("User Created Successfully, please confirm email");
@@ -71,16 +76,20 @@ namespace PasswordManager.Controllers
                 if (user is null)
                     return NotFound("Username not found");
 
+                _logger.LogInformation("Attempting to verify user's credentials");
+
                 var isUserValid = await _userManager.CheckPasswordAsync(user,loginDto.Password);
+                if(!isUserValid)
+                    return Unauthorized("Wrong username or password");
 
                 if(!await _userManager.IsEmailConfirmedAsync(user))
                     return BadRequest("Please confirm your email");
                 if (await _userManager.IsLockedOutAsync(user))
                     return BadRequest("Please reset your password or try again later");
 
-                
-                
 
+
+                _logger.LogInformation("Attempting to generate access token");
                 return Ok(await _tokensManager.GenerateToken(user));
 
             }
@@ -91,17 +100,22 @@ namespace PasswordManager.Controllers
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(string token,string email)
         {
+
+
             //check if user exists
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
                 return NotFound("User not found");
 
+            _logger.LogInformation("Attempting to verify email");
+            //confirm email via received token and email
            var result =  await _userManager.ConfirmEmailAsync(user, token);
 
             if (result.Succeeded)
-                return Ok("Email confirmed");
+                return Redirect("https://localhost:7077/swagger/index.html");
 
-            return BadRequest("Could not confirm email");
+            _logger.LogError("Email not confirmed");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Could not confirm email");
 
         }
     }
