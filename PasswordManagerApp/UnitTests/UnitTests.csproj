@@ -26,6 +26,7 @@
     <ProjectReference Include="..\Data\Data.csproj" />
     <ProjectReference Include="..\EmailingService\EmailingService.csproj" />
     <ProjectReference Include="..\PasswordEncryption\PasswordEncryption.csproj" />
+    <ProjectReference Include="..\PasswordManager\PasswordManager.csproj" />
   </ItemGroup>
 
 </Project>
