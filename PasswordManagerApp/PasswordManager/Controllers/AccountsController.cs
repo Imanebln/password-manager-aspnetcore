@@ -1,6 +1,7 @@
 ﻿using AuthenticationService;
 using AuthenticationService.Models;
 using Data.Models;
+using Data.Models.Email;
 using EmailingService.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -18,14 +19,16 @@ namespace PasswordManager.Controllers
         private readonly ITokensManager _tokensManager;
         private readonly IEmailService _emailService;
         private readonly ILogger<AccountsController> _logger;
+        private readonly EmailConfiguration _emailConfiguration;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger)
+        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger, EmailConfiguration emailConfiguration)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokensManager = tokensManager;
             _emailService = emailService;
             _logger = logger;
+            _emailConfiguration = emailConfiguration;
         }
 
         [HttpPost("signup")]
@@ -116,5 +119,40 @@ namespace PasswordManager.Controllers
             return StatusCode(StatusCodes.Status500InternalServerError, "Could not confirm email");
 
         }
+
+        [HttpPost("request-password-reset")]
+        public async Task<IActionResult> RequestNewPassword(RequestPasswordResetModel requestPasswordResetModel)
+        {
+            var user = await _userManager.FindByEmailAsync(requestPasswordResetModel.Email);
+            if (user is null)
+                return NotFound("User not found");
+
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var email = new Email
+            {
+                From = _emailConfiguration.From,
+                To = user.Email,
+                Content = $"Please copy the following token and use it to reset your password: {resetToken}"
+            };
+            await _emailService.SendEmailAsync(email);
+
+            return Ok("Please check your email to reset your password.");
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPasswordModel)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordModel.Email);
+            if (user is null)
+                return NotFound("User not found");
+
+            var result = await _userManager.ResetPasswordAsync(user, resetPasswordModel.Token, resetPasswordModel.NewPassword);
+
+            if (!result.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError, "Could not reset password, please try again later");
+
+            return Ok("You've successfully reseted your password");
+        }
+
     }
 }
