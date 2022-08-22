@@ -100,8 +100,6 @@ namespace PasswordManager.Controllers
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(string token,string email)
         {
-
-
             //check if user exists
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
