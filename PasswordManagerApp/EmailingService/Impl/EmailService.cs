@@ -29,7 +29,7 @@ namespace EmailingService.Impl
             //Generate confirmation token
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            // redirect user to login page
+            // send token via email
             token = HttpUtility.UrlEncode(token);
             var confirmationLink = "https://localhost:7077/api/Accounts/confirm-email?token=" + token + "&email=" + user.Email;
             
