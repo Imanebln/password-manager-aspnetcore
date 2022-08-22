@@ -19,10 +19,6 @@ namespace EmailingService.Impl
         }
         public async Task SendEmailAsync(Email email)
         {
-            //// for testing
-            //email.From = _emailConfiguration.From;
-            //email.To = "boulouane.imane@gmail.com";
-            //email.Content = "Please validate your email!";
             var emailMessage = CreateEmailMessage(email);
 
             await SendAsync(emailMessage);
