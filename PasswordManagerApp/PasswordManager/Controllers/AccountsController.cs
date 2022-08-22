@@ -130,6 +130,7 @@ namespace PasswordManager.Controllers
                 return NotFound("User not found");
 
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            
             var email = new Email
             {
                 From = _emailConfiguration.From,
@@ -155,6 +156,11 @@ namespace PasswordManager.Controllers
 
             return Ok("You've successfully reseted your password");
         }
+
+        //TODO: email change 
+        //TODO: refresh token 
+        //TODO: 2FA
+        
 
     }
 }
