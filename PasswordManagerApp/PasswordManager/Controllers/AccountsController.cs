@@ -6,6 +6,7 @@ using EmailingService.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PasswordEncryption.Contracts;
 using System.Web;
 
 namespace PasswordManager.Controllers
@@ -20,8 +21,9 @@ namespace PasswordManager.Controllers
         private readonly IEmailService _emailService;
         private readonly ILogger<AccountsController> _logger;
         private readonly EmailConfiguration _emailConfiguration;
+        private readonly ISymmetricEncryptDecrypt _encryptionService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger, EmailConfiguration emailConfiguration)
+        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger, EmailConfiguration emailConfiguration,ISymmetricEncryptDecrypt encryptionService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -29,6 +31,7 @@ namespace PasswordManager.Controllers
             _emailService = emailService;
             _logger = logger;
             _emailConfiguration = emailConfiguration;
+            _encryptionService = encryptionService;
         }
 
         [HttpPost("signup")]
@@ -36,10 +39,13 @@ namespace PasswordManager.Controllers
         {
             if (ModelState.IsValid)
             {
+                (string key, string IV) = _encryptionService.InitSymmetricEncryptionKeyIV();
+
                 ApplicationUser appUser = new()
                 {
                     UserName = userDto.Username,
-                    Email = userDto.Email
+                    Email = userDto.Email,
+                    IVBase64 = IV
                 };
 
                 _logger.LogInformation("Attemting to create a user");
@@ -195,8 +201,7 @@ namespace PasswordManager.Controllers
             return BadRequest(result.Errors);
         }
 
-        //TODO: email change 
-        //TODO: refresh token 
+        //TODO: refresh token
         //TODO: 2FA
         
 

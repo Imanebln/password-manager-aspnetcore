@@ -13,5 +13,6 @@ namespace Data.Models
     {
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime RefreshTokenExpiryTime { get; set; }
+        public string IVBase64 { get; set; } = string.Empty;
     }
 }

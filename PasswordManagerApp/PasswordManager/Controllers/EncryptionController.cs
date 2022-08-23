@@ -38,9 +38,11 @@ namespace PasswordManager.Controllers
         [HttpPost("DecryptPassword")]
         public string DecryptPassword(DecryptModel decryptModel)
         {
-            var decryptedPassword = _symmetricEncryptDecrypt.Decrypt(decryptModel.EncryptedPassword, decryptModel.IVBase64, decryptModel.Key);
+            
+            var decryptedPassword = _symmetricEncryptDecrypt.Decrypt(decryptModel.EncryptedPassword,decryptModel.IVBase64, decryptModel.Key);
             Console.WriteLine("Your password after decryption: " + decryptedPassword);
-            return decryptedPassword;        }
+            return decryptedPassword;        
+        }
 
     }
 }
