@@ -29,7 +29,6 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
             mongoDbConfig.ConnectionString, mongoDbConfig.Name
         ).AddDefaultTokenProviders();
 
-builder.Services.AddScoped<ITokensManager,TokensManager>();
 builder.Services.AddHttpContextAccessor();
 //creating a logger from configuration
 var logger = new LoggerConfiguration()
@@ -51,6 +50,7 @@ builder.Services.AddSingleton(emailConfig);
 // Dependency Injection goes here
 builder.Services.AddScoped<ISymmetricEncryptDecrypt, SymmetricEncryptDecrypt>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ITokensManager, TokensManager>();
 
 var app = builder.Build();
 
