@@ -40,7 +40,7 @@ namespace PasswordEncryption.Impl
         /// <param name="IV">Base64 IV string/param>
         /// <param name="key">Base64 key</param>
         /// <returns>Returns a string</returns>
-        public string Decrypt(string encryptedText, string IV, string key)
+        public string Decrypt(string encryptedText,string IV, string key)
         {
             Aes cipher = CreateCipher(key);
             cipher.IV = Convert.FromBase64String(IV);
@@ -50,6 +50,13 @@ namespace PasswordEncryption.Impl
             byte[] plainBytes = cryptTransform.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
 
             return Encoding.UTF8.GetString(plainBytes);
+        }
+
+        public string GenerateIVFromKey(string key)
+        {
+            Aes cipher = CreateCipher(key);
+
+            return Convert.ToBase64String(cipher.IV);
         }
 
         private string GetEncodedRandomString(int length)
