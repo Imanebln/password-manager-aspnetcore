@@ -128,6 +128,7 @@ namespace PasswordManager.Controllers
                 return NotFound("User not found");
 
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            
             var email = new Email
             {
                 From = _emailConfiguration.From,
@@ -153,6 +154,51 @@ namespace PasswordManager.Controllers
 
             return Ok("You've successfully reseted your password");
         }
+
+        [HttpPost("request-email-change")]
+        public async Task<IActionResult> RequestEmailChange(RequestEmailChangeModel emailChangeModel)
+        {
+            var user = await _userManager.FindByEmailAsync(emailChangeModel.Email);
+
+            if(user is null)
+                return NotFound("User not found");
+
+            var token = await _userManager.GenerateChangeEmailTokenAsync(user, emailChangeModel.NewEmail);
+
+            token = HttpUtility.UrlEncode(token);
+            var confirmationLink = String.Format("https://localhost:7077/api/Accounts/confirm-email-change?token={0}&oldemail={1}&newemail={2}", token,user.Email,emailChangeModel.NewEmail);
+
+            Email email = new()
+            {
+                To = user.Email,
+                Subject = "Confirm email change",
+                Content = string.Format("<h2 style='color: red;'>Confirm changing your email, please click this link:</h2>"),
+                Link = confirmationLink,
+                From = _emailConfiguration.From
+            };
+            await _emailService.SendEmailAsync(email);
+
+            return Ok();
+        }
+
+        [HttpGet("confirm-email-change")]
+        public async Task<IActionResult> ConfirmEmailChange(string token,string oldEmail,string newEmail)
+        {
+            var user = await _userManager.FindByEmailAsync(oldEmail);
+            if (user is null)
+                return NotFound("User not found");
+
+            var result = await _userManager.ChangeEmailAsync(user,newEmail,token);
+            if(result.Succeeded)
+                return Ok("Email successfully changed");
+
+            return BadRequest(result.Errors);
+        }
+
+        //TODO: email change 
+        //TODO: refresh token 
+        //TODO: 2FA
+        
 
     }
 }
