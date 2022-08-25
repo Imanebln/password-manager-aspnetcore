@@ -1,0 +1,24 @@
+{
+  "VALIDATION": {
+    "Subject": "Continue your account registration in Passwords Manager Application",
+    "Message": "Please click on the link to complete registration",
+    "Title": "Email Validation",
+    "Type": "success",
+    "ButtonText": "Confirm"
+  },
+  "PASSWORD_RESET": {
+    "Subject": "Resetting your password in Passwords Manager Application",
+    "Message": "You have submitted a password reset of your account.<br/>Please copy the following token and use it to reset your password.<br/>If you don't remember doing that please ignore this email<br/>",
+    "Title": "Password Reset",
+    "Type": "danger",
+    "ButtonText": "Reset"
+  },
+  "EMAIL_CHANGE": {
+    "Subject": "Changing your email in Passwords Manager Application",
+    "Message": "You have submitted an email change of your account.Click on the button below.<br/>If you don't remember doing that please ignore this email",
+    "Title": "Email Change",
+    "Type": "danger",
+    "ButtonText": "Change"
+  }
+
+}

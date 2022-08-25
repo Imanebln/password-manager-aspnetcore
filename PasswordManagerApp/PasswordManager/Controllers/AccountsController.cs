@@ -19,11 +19,12 @@ namespace PasswordManager.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITokensManager _tokensManager;
         private readonly IEmailService _emailService;
+        private readonly IPrettyEmail _emailSender;
         private readonly ILogger<AccountsController> _logger;
         private readonly EmailConfiguration _emailConfiguration;
         private readonly ISymmetricEncryptDecrypt _encryptionService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger, EmailConfiguration emailConfiguration,ISymmetricEncryptDecrypt encryptionService)
+        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger, EmailConfiguration emailConfiguration,ISymmetricEncryptDecrypt encryptionService,IPrettyEmail emailSender)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -32,6 +33,7 @@ namespace PasswordManager.Controllers
             _logger = logger;
             _emailConfiguration = emailConfiguration;
             _encryptionService = encryptionService;
+            _emailSender = emailSender;
         }
 
         [HttpPost("signup")]
@@ -40,6 +42,7 @@ namespace PasswordManager.Controllers
             if (ModelState.IsValid)
             {
                 (string key, string IV) = _encryptionService.InitSymmetricEncryptionKeyIV();
+                Console.WriteLine(key);
 
                 ApplicationUser appUser = new()
                 {
@@ -62,7 +65,8 @@ namespace PasswordManager.Controllers
                     }
 
                     _logger.LogInformation("Sending confirmation Email");
-                    await _emailService.EmailValidation(appUser);
+
+                    await ValidationEmail(appUser);
 
                     return Ok("User Created Successfully, please confirm email");
                 }                  
@@ -105,6 +109,19 @@ namespace PasswordManager.Controllers
 
             return BadRequest(ModelState);
         }
+        // Send email to confirm 
+        private async Task<string> ValidationEmail(ApplicationUser user)
+        {
+            //Generate confirmation token
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            // send token via email
+            token = HttpUtility.UrlEncode(token);
+            var confirmationLink = "https://localhost:7077/api/Accounts/confirm-email?token=" + token + "&email=" + user.Email;
+            _emailSender.SendEmailVerification(user.Email, confirmationLink);
+
+            return "Success";
+        }
 
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(string token,string email)
@@ -135,13 +152,8 @@ namespace PasswordManager.Controllers
 
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
             
-            var email = new Email
-            {
-                From = _emailConfiguration.From,
-                To = user.Email,
-                Content = $"Please copy the following token and use it to reset your password: {resetToken}"
-            };
-            await _emailService.SendEmailAsync(email);
+            // add link to redirect to reset password page in front
+            _emailSender.SendPasswordReset(user.Email,"",resetToken);
 
             return Ok("Please check your email to reset your password.");
         }
@@ -174,15 +186,7 @@ namespace PasswordManager.Controllers
             token = HttpUtility.UrlEncode(token);
             var confirmationLink = String.Format("https://localhost:7077/api/Accounts/confirm-email-change?token={0}&oldemail={1}&newemail={2}", token,user.Email,emailChangeModel.NewEmail);
 
-            Email email = new()
-            {
-                To = user.Email,
-                Subject = "Confirm email change",
-                Content = string.Format("<h2 style='color: red;'>Confirm changing your email, please click this link:</h2>"),
-                Link = confirmationLink,
-                From = _emailConfiguration.From
-            };
-            await _emailService.SendEmailAsync(email);
+            _emailSender.SendEmailChange(user.Email, confirmationLink);
 
             return Ok();
         }

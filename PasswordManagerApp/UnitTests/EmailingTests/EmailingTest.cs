@@ -51,15 +51,6 @@ namespace UnitTests.EmailingTests
             // Assert
             Assert.NotNull(result);
         }
-        [Fact, Priority(2)]
-        public void EmailValidation()
-        {
-            // Act
-            var result = _emailService.EmailValidation(_user);
-
-            // Assert
-            Assert.IsType<Task<string>>(result);
-        }
 
     }
 }

@@ -50,6 +50,7 @@ builder.Services.AddSingleton(emailConfig);
 // Dependency Injection goes here
 builder.Services.AddScoped<ISymmetricEncryptDecrypt, SymmetricEncryptDecrypt>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPrettyEmail, PrettyEmail>();
 builder.Services.AddScoped<ITokensManager, TokensManager>();
 
 var app = builder.Build();

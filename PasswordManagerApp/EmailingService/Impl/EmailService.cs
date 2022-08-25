@@ -17,33 +17,23 @@ namespace EmailingService.Impl
             _emailConfiguration = emailConfiguration;
             _userManager = userManager;
         }
+        public EmailService(EmailConfiguration emailConfiguration)
+        {
+            _emailConfiguration = emailConfiguration;
+        }
         public async Task SendEmailAsync(Email email)
         {
             var emailMessage = CreateEmailMessage(email);
 
             await SendAsync(emailMessage);
         }
-        // Email Validation
-        public async Task<string> EmailValidation(ApplicationUser user)
+        public void SendEmail(Email email)
         {
-            //Generate confirmation token
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var emailMessage = CreateEmailMessage(email);
 
-            // send token via email
-            token = HttpUtility.UrlEncode(token);
-            var confirmationLink = "https://localhost:7077/api/Accounts/confirm-email?token=" + token + "&email=" + user.Email;
-            
-            Email email = new()
-            {
-                To = user.Email,
-                Subject = "Email Confirmation",
-                Content = string.Format("<h2 style='color: red;'>Confirm your email, please click this link:</h2>"),
-                Link = confirmationLink,
-                From = _emailConfiguration.From
-            };
-            await SendEmailAsync(email);
-            return "Success!";
+            Send(emailMessage);
         }
+
 
         //Create email message
         protected virtual MimeMessage CreateEmailMessage(Email email)
@@ -53,8 +43,7 @@ namespace EmailingService.Impl
             emailMessage.From.Add(new MailboxAddress(_emailConfiguration.DisplayName, _emailConfiguration.From));
             emailMessage.To.Add(MailboxAddress.Parse(email.To));
             emailMessage.Subject = email.Subject;
-            //emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = email.Content + "\n" + email.Link };
-            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = string.Format("<h2 style='color:red;'>{0}</h2> <a href='{1}'>Click here</a>", email.Content,email.Link) };
+            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = email.Content + "\n" + email.Link };
             return emailMessage;
         }
         //Send message async
@@ -77,6 +66,30 @@ namespace EmailingService.Impl
                 finally
                 {
                     await client.DisconnectAsync(true);
+                    client.Dispose();
+                }
+
+            }
+        }
+        private void Send(MimeMessage mailMessage)
+        {
+            using (var client = new SmtpClient())
+            {
+                try
+                {
+                    client.ConnectAsync(_emailConfiguration.SmtpServer, _emailConfiguration.Port, true);
+                    client.AuthenticationMechanisms.Remove("XOAUTH2");
+                    client.AuthenticateAsync(_emailConfiguration.UserName, _emailConfiguration.Password);
+                    client.SendAsync(mailMessage);
+                }
+                catch
+                {
+                    //log an error message or throw an exception or both.
+                    throw;
+                }
+                finally
+                {
+                    client.DisconnectAsync(true);
                     client.Dispose();
                 }
 

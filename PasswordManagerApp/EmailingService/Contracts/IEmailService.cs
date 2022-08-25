@@ -11,6 +11,6 @@ namespace EmailingService.Contracts
     public interface IEmailService
     {
         Task SendEmailAsync(Email email);
-        Task<string> EmailValidation(ApplicationUser user);
+        void SendEmail(Email email);
     }
 }

@@ -8,7 +8,7 @@ namespace PasswordEncryption.Impl
     {
         public (string Key, string IVBase64) InitSymmetricEncryptionKeyIV()
         {
-            var key = GetEncodedRandomString(32); // 256
+            var key = GetEncodedRandomString(16); 
             Aes cipher = CreateCipher(key);
             var IVBase64 = Convert.ToBase64String(cipher.IV);
             return (key, IVBase64);
