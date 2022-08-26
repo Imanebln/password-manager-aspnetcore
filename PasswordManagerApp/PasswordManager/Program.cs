@@ -8,6 +8,7 @@ using EmailingService.Contracts;
 using EmailingService.Impl;
 using Data.Models.Email;
 using Microsoft.AspNetCore.Identity;
+using Data.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,12 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
             mongoDbConfig.ConnectionString, mongoDbConfig.Name
         ).AddDefaultTokenProviders();
 
+// Inject mongoDbConfig
+builder.Services.AddSingleton(mongoDbConfig);
+
+// Inject Mongodb Data Access repo
+builder.Services.AddSingleton<IMongoDbDataAccess, MongoDbDataAccess>();
+
 builder.Services.AddHttpContextAccessor();
 //creating a logger from configuration
 var logger = new LoggerConfiguration()
@@ -46,6 +53,7 @@ var emailConfig = builder.Configuration
         .GetSection("EmailConfiguration")
         .Get<EmailConfiguration>();
 builder.Services.AddSingleton(emailConfig);
+
 
 // Dependency Injection goes here
 builder.Services.AddScoped<ISymmetricEncryptDecrypt, SymmetricEncryptDecrypt>();

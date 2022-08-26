@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Data.Models
 {
-    public class RequestEmailChangeModel
+    public class AccountInfosModel
     {
-        [EmailAddress]
         public string Email { get; set; } = string.Empty;
-        [EmailAddress]
-        public string NewEmail { get; set; } = String.Empty;
+        public string EncryptedPassword { get; set; } = string.Empty;
     }
 }
