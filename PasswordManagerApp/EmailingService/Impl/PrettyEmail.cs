@@ -12,10 +12,10 @@ namespace EmailingService.Impl
 {
     public class PrettyEmail: EmailService, IPrettyEmail
     {
-        private readonly IConfiguration config;
+        private readonly IConfiguration _config;
         public PrettyEmail(EmailConfiguration emailConfiguration): base(emailConfiguration)
         {
-            config = new ConfigurationBuilder().AddJsonFile(@"resources\DefaultEmail.json").Build();
+            _config = new ConfigurationBuilder().AddJsonFile(@"resources\DefaultEmail.json").Build();
         }
 
         protected override MimeMessage CreateEmailMessage(Email email)
@@ -29,11 +29,11 @@ namespace EmailingService.Impl
             emailMessage.Body = builder.ToMessageBody();
             return emailMessage;
         }
-        public void SendEmailVerification(string to, string link)
+        public async Task SendEmailVerification(string to, string link)
         {
             Email email = GetEmail("VALIDATION", link);
             email.To = to;
-            SendEmailAsync(email);
+            await SendEmailAsync(email);
         }
         private Email GetEmail(string EmailName,string? link)
         {
@@ -58,22 +58,22 @@ namespace EmailingService.Impl
 
             string getString(string name, string local)
             {
-                return config[$"{name}:{local}"];
+                return _config[$"{name}:{local}"];
             }
         }
 
-        public void SendPasswordReset(string to, string link,string token)
+        public async Task SendPasswordReset(string to, string link,string token)
         {
             Email email = GetEmail("PASSWORD_RESET", link);
             email.To = to;
             email.EmailBody.Message += "\n"+token;
-            SendEmailAsync(email);
+            await SendEmailAsync(email);
         }
-        public void SendEmailChange(string to, string link)
+        public async Task SendEmailChange(string to, string link)
         {
             Email email = GetEmail("EMAIL_CHANGE", link);
             email.To = to;
-            SendEmailAsync(email);
+            await SendEmailAsync(email);
         }
     }
 }

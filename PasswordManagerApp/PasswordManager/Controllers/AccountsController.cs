@@ -18,20 +18,16 @@ namespace PasswordManager.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITokensManager _tokensManager;
-        private readonly IEmailService _emailService;
         private readonly IPrettyEmail _emailSender;
         private readonly ILogger<AccountsController> _logger;
-        private readonly EmailConfiguration _emailConfiguration;
         private readonly ISymmetricEncryptDecrypt _encryptionService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager, IEmailService emailService,ILogger<AccountsController> logger, EmailConfiguration emailConfiguration,ISymmetricEncryptDecrypt encryptionService,IPrettyEmail emailSender)
+        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager,ILogger<AccountsController> logger,ISymmetricEncryptDecrypt encryptionService,IPrettyEmail emailSender)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokensManager = tokensManager;
-            _emailService = emailService;
             _logger = logger;
-            _emailConfiguration = emailConfiguration;
             _encryptionService = encryptionService;
             _emailSender = emailSender;
         }
@@ -67,6 +63,7 @@ namespace PasswordManager.Controllers
                     _logger.LogInformation("Sending confirmation Email");
 
                     await ValidationEmail(appUser);
+                    
 
                     return Ok("User Created Successfully, please confirm email");
                 }                  
@@ -118,7 +115,7 @@ namespace PasswordManager.Controllers
             // send token via email
             token = HttpUtility.UrlEncode(token);
             var confirmationLink = "https://localhost:7077/api/Accounts/confirm-email?token=" + token + "&email=" + user.Email;
-            _emailSender.SendEmailVerification(user.Email, confirmationLink);
+            await _emailSender.SendEmailVerification(user.Email, confirmationLink);
 
             return "Success";
         }
@@ -153,7 +150,7 @@ namespace PasswordManager.Controllers
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
             
             // add link to redirect to reset password page in front
-            _emailSender.SendPasswordReset(user.Email,"",resetToken);
+            await _emailSender.SendPasswordReset(user.Email,"",resetToken);
 
             return Ok("Please check your email to reset your password.");
         }
@@ -186,7 +183,7 @@ namespace PasswordManager.Controllers
             token = HttpUtility.UrlEncode(token);
             var confirmationLink = String.Format("https://localhost:7077/api/Accounts/confirm-email-change?token={0}&oldemail={1}&newemail={2}", token,user.Email,emailChangeModel.NewEmail);
 
-            _emailSender.SendEmailChange(user.Email, confirmationLink);
+            await _emailSender.SendEmailChange(user.Email, confirmationLink);
 
             return Ok();
         }

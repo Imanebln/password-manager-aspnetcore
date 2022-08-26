@@ -8,8 +8,8 @@ namespace EmailingService.Contracts
 {
     public interface IPrettyEmail: IEmailService
     {
-        void SendEmailVerification(string to, string link);
-        void SendPasswordReset(string to, string link, string token);
-        void SendEmailChange(string to, string link);
+        Task SendEmailVerification(string to, string link);
+        Task SendPasswordReset(string to, string link, string token);
+        Task SendEmailChange(string to, string link);
     }
 }
