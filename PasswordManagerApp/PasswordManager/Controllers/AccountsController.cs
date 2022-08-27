@@ -1,5 +1,6 @@
 ﻿using AuthenticationService;
 using AuthenticationService.Models;
+using Data.DataAccess;
 using Data.Models;
 using Data.Models.Email;
 using EmailingService.Contracts;
