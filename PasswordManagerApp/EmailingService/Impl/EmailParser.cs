@@ -12,7 +12,7 @@ namespace EmailingService.Impl
 		public static readonly string DefaultEmailTemplate = File.ReadAllText(@"resources\email.html", Encoding.UTF8);
 		public static readonly string DefaultButtonTemplate = File.ReadAllText(@"resources\button.html", Encoding.UTF8);
 
-		private static readonly Dictionary<EmailType, string[]> IconResolver = new()
+		private static readonly Dictionary<EmailType, string[]> _iconResolver = new()
 		{
 			{ EmailType.success, new string[] { "https://i.ibb.co/1GW7c4V/checked.png", "#32ba7c" } },
 			{ EmailType.info, new string[] { "https://i.ibb.co/8PfpSrv/info.png", "#08a8ee" } },
@@ -23,7 +23,7 @@ namespace EmailingService.Impl
 		public static string GetStyledBody(EmailBody emailBody)
 		{
 			string EmailTemplate = DefaultEmailTemplate;
-			EmailTemplate = EmailTemplate.Replace("{{EMAIL_ICON}}", IconResolver[emailBody.Type][0]);
+			EmailTemplate = EmailTemplate.Replace("{{EMAIL_ICON}}", _iconResolver[emailBody.Type][0]);
 			EmailTemplate = EmailTemplate.Replace("{{EMAIL_TITLE}}", emailBody.Title);
 			EmailTemplate = EmailTemplate.Replace("{{EMAIL_MESSAGE}}", emailBody.Message);
 			EmailTemplate = EmailTemplate.Replace("{{EMAIL_REFRESHTOKEN}}", emailBody.RefreshToken);
@@ -40,7 +40,7 @@ namespace EmailingService.Impl
 				string btnTemplate = DefaultButtonTemplate;
 				btnTemplate = btnTemplate.Replace("{{BUTTON_TEXT}}", button.Text);
 				btnTemplate = btnTemplate.Replace("{{BUTTON_LINK}}", button.Link);
-				btnTemplate = btnTemplate.Replace("{{BUTTON_COLOR}}", IconResolver[type][1]);
+				btnTemplate = btnTemplate.Replace("{{BUTTON_COLOR}}", _iconResolver[type][1]);
 				ButtonHtml.Append(btnTemplate);
 			}
 			return ButtonHtml.ToString();

@@ -11,12 +11,6 @@ namespace EmailingService.Impl
     public class EmailService : IEmailService
     {
         protected readonly EmailConfiguration _emailConfiguration;
-        private readonly UserManager<ApplicationUser> _userManager;
-        public EmailService(EmailConfiguration emailConfiguration, UserManager<ApplicationUser> userManager)
-        {
-            _emailConfiguration = emailConfiguration;
-            _userManager = userManager;
-        }
         public EmailService(EmailConfiguration emailConfiguration)
         {
             _emailConfiguration = emailConfiguration;
@@ -49,50 +43,44 @@ namespace EmailingService.Impl
         //Send message async
         private async Task SendAsync(MimeMessage mailMessage)
         {
-            using (var client = new SmtpClient())
+            using var client = new SmtpClient();
+            try
             {
-                try
-                {
-                    await client.ConnectAsync(_emailConfiguration.SmtpServer, _emailConfiguration.Port, true);
-                    client.AuthenticationMechanisms.Remove("XOAUTH2");
-                    await client.AuthenticateAsync(_emailConfiguration.UserName, _emailConfiguration.Password);
-                    await client.SendAsync(mailMessage);
-                }
-                catch
-                {
-                    //log an error message or throw an exception or both.
-                    throw;
-                }
-                finally
-                {
-                    await client.DisconnectAsync(true);
-                    client.Dispose();
-                }
-
+                await client.ConnectAsync(_emailConfiguration.SmtpServer, _emailConfiguration.Port, true);
+                client.AuthenticationMechanisms.Remove("XOAUTH2");
+                await client.AuthenticateAsync(_emailConfiguration.UserName, _emailConfiguration.Password);
+                await client.SendAsync(mailMessage);
+            }
+            catch
+            {
+                //log an error message or throw an exception or both.
+                throw;
+            }
+            finally
+            {
+                await client.DisconnectAsync(true);
+                client.Dispose();
             }
         }
         private void Send(MimeMessage mailMessage)
         {
-            using (var client = new SmtpClient())
+            using var client = new SmtpClient();
+            try
             {
-                try
-                {
-                    client.ConnectAsync(_emailConfiguration.SmtpServer, _emailConfiguration.Port, true);
-                    client.AuthenticationMechanisms.Remove("XOAUTH2");
-                    client.AuthenticateAsync(_emailConfiguration.UserName, _emailConfiguration.Password);
-                    client.SendAsync(mailMessage);
-                }
-                catch
-                {
-                    //log an error message or throw an exception or both.
-                    throw;
-                }
-                finally
-                {
-                    client.DisconnectAsync(true);
-                    client.Dispose();
-                }
-
+                client.ConnectAsync(_emailConfiguration.SmtpServer, _emailConfiguration.Port, true);
+                client.AuthenticationMechanisms.Remove("XOAUTH2");
+                client.AuthenticateAsync(_emailConfiguration.UserName, _emailConfiguration.Password);
+                client.SendAsync(mailMessage);
+            }
+            catch
+            {
+                //log an error message or throw an exception or both.
+                throw;
+            }
+            finally
+            {
+                client.DisconnectAsync(true);
+                client.Dispose();
             }
         }
     }
