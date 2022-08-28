@@ -18,14 +18,12 @@ namespace UnitTests.EmailingTests
     {
         private readonly EmailService _emailService;
         private readonly EmailConfiguration _emailConfiguration;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly Email _emailAddress;
-        private readonly ApplicationUser _user;
 
         public EmailingTest()
         {
             _emailConfiguration = new EmailConfiguration();
-            _emailService = new EmailService(_emailConfiguration,_userManager);
+            _emailService = new EmailService(_emailConfiguration);
             _emailAddress = new Email()
             {
                 From = "",
@@ -35,11 +33,7 @@ namespace UnitTests.EmailingTests
                 Subject = "Email validation"
 
             };
-            _user = new ApplicationUser()
-            {
-                Email = "boulouane.imane@gmail.com",
-
-            };
+            
         }
 
         [Fact, Priority(1)]
