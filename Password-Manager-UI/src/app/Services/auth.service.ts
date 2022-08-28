@@ -13,7 +13,7 @@ export class AuthService {
   constructor(private http: HttpClient) { }
 
   // Sign Up 
-  signUp(user : Register){
+  signUp(user : any){
     return this.http.post(this.apiUrl + 'Accounts/signup', user);
   }
   signIn(user : Login){
