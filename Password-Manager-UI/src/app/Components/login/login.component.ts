@@ -30,8 +30,10 @@ export class LoginComponent implements OnInit {
   onSubmit(){
     // calling login method in auth service
     this.authService.signIn(this.signInForm.value).subscribe({
-      next: () => {
+      next: (response: any) => {
         // show success alert here
+        const token = response.token;
+        localStorage.setItem('jwt', token);
         this.router.navigate(['dashboard']);
       },
       error: (err: HttpErrorResponse) => {

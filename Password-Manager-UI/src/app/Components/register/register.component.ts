@@ -23,7 +23,12 @@ export class RegisterComponent implements OnInit {
   ngOnInit(): void {
     // Sign up form
     console.log("this is register page!");
-    
+
+  const token = localStorage.getItem('jwt');
+  if (token) {
+    this.router.navigate(['dashboard']);
+  }
+
   this.signUpForm = new FormGroup({
     username: new FormControl(null,[Validators.required]),
     email: new FormControl(
