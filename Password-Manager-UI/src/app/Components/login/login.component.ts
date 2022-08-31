@@ -32,7 +32,8 @@ export class LoginComponent implements OnInit {
     this.authService.signIn(this.signInForm.value).subscribe({
       next: (response: any) => {
         // show success alert here
-        const token = response.token;
+        const token = response.accessToken;
+        console.log(response);
         localStorage.setItem('jwt', token);
         this.router.navigate(['dashboard']);
       },
@@ -40,6 +41,18 @@ export class LoginComponent implements OnInit {
         // show error alert here
         console.log(err);
         
+      }
+    })
+  }
+
+  recoverPassword(){
+    this.authService.requestPassReset(this.signInForm.value.email).subscribe({
+      next: (res: any) => {
+        console.log(res);
+        // this.router.navigate(['reset-password']);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.log(err);
       }
     })
   }

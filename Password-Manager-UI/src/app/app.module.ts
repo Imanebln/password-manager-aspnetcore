@@ -11,6 +11,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { JwtModule } from '@auth0/angular-jwt';
 import { AuthGuard } from './Guards/auth.guard';
+import { ResetPasswordComponent } from './Components/reset-password/reset-password.component';
+import { RecoverPasswordComponent } from './Components/recover-password/recover-password.component';
 
 export function tokenGetter() {
   return localStorage.getItem('jwt');
@@ -20,7 +22,9 @@ export function tokenGetter() {
     AppComponent,
     RegisterComponent,
     LoginComponent,
-    DashboardComponent
+    DashboardComponent,
+    ResetPasswordComponent,
+    RecoverPasswordComponent,
   ],
   imports: [
     BrowserModule,

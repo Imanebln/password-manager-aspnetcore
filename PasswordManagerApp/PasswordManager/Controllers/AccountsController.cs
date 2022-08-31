@@ -149,9 +149,10 @@ namespace PasswordManager.Controllers
                 return NotFound("User not found");
 
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-            
-            // add link to redirect to reset password page in front
-            await _emailSender.SendPasswordReset(user.Email,"",resetToken);
+
+            // added link to redirect to reset password page in front
+            var confirmationlink = "http://localhost:4200/reset-password?email=" + user.Email;
+            await _emailSender.SendPasswordReset(user.Email, confirmationlink, resetToken);
 
             return Ok("Please check your email to reset your password.");
         }
