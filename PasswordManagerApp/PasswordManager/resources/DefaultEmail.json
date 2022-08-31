@@ -19,6 +19,13 @@
     "Title": "Email Change",
     "Type": "danger",
     "ButtonText": "Change"
+  },
+  "2FA_CODE": {
+    "Subject": "2 Factor Authentication",
+    "Message": "Here is the 2FA Token, Please copy it and use it to connect to your account.",
+    "Title": "2FA Token",
+    "Type": "success",
+    "ButtonText": "Confirm"
   }
 
 }

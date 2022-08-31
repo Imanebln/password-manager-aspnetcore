@@ -4,6 +4,7 @@ using Data.DataAccess;
 using Data.Models;
 using Data.Models.Email;
 using EmailingService.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,10 +21,11 @@ namespace PasswordManager.Controllers
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ITokensManager _tokensManager;
         private readonly IPrettyEmail _emailSender;
+        private readonly IHttpContextAccessor _httpContext;
         private readonly ILogger<AccountsController> _logger;
         private readonly ISymmetricEncryptDecrypt _encryptionService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager,ILogger<AccountsController> logger,ISymmetricEncryptDecrypt encryptionService,IPrettyEmail emailSender)
+        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager,ILogger<AccountsController> logger,ISymmetricEncryptDecrypt encryptionService,IPrettyEmail emailSender,IHttpContextAccessor httpContext)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -31,6 +33,7 @@ namespace PasswordManager.Controllers
             _logger = logger;
             _encryptionService = encryptionService;
             _emailSender = emailSender;
+            _httpContext = httpContext;
         }
 
         [HttpPost("signup")]
@@ -97,7 +100,8 @@ namespace PasswordManager.Controllers
                     return BadRequest("Please confirm your email");
                 if (await _userManager.IsLockedOutAsync(user))
                     return BadRequest("Please reset your password or try again later");
-
+                if (await _userManager.GetTwoFactorEnabledAsync(user))
+                    return await GenerateOTPForTwoFactorAuth(user.Email);
 
 
                 _logger.LogInformation("Attempting to generate access token");
@@ -204,8 +208,56 @@ namespace PasswordManager.Controllers
             return BadRequest(result.Errors);
         }
 
-        //TODO: refresh token
-        //TODO: 2FA
+
+
+        [HttpGet("Set-2fa"),Authorize]
+        public async Task<IActionResult> Set2FA(bool enabled)
+        {
+            var userName = _httpContext.HttpContext.User.Identity.Name;
+
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user is null)
+                return NotFound("User not found");
+
+            var result = await _userManager.SetTwoFactorEnabledAsync(user, enabled);
+            if (result.Succeeded)
+                return Ok("Successfully enabled 2FA");
+
+            return BadRequest("Couldn't enable 2FA");
+        }
+
+        [HttpGet("send-2fa-code")]
+        public async Task<IActionResult> GenerateOTPForTwoFactorAuth(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user is null)
+                return NotFound("User not found");
+
+            var providers = await _userManager.GetValidTwoFactorProvidersAsync(user);
+            if (!providers.Contains("Email"))
+                return Unauthorized("Invalid 2-Step Verification Provider.");
+
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            await _emailSender.Send2FAToken(user.Email, token);
+
+            return Ok(new { Is2FARequired = true, Provider = "Email" });
+        }
+
+        [HttpPost("2fa-login")]
+        public async Task<IActionResult> LoginWithOTP(OTPLoginModel loginModel)
+        {
+            var user = await _userManager.FindByEmailAsync(loginModel.Email);
+            if (user is null)
+                return NotFound("User not found");
+
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, loginModel.Provider, loginModel.Token);
+
+            if (!isValid)
+                return Unauthorized("Invalid token.");
+
+            return Ok(await _tokensManager.GenerateToken(user));
+        }
+        
         
 
     }
