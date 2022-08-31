@@ -9,6 +9,9 @@ using EmailingService.Impl;
 using Data.Models.Email;
 using Microsoft.AspNetCore.Identity;
 using Data.DataAccess;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +26,7 @@ var mongoDbConfig = builder.Configuration.GetSection(nameof(MongoDbConfig)).Get<
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
     opt => {
         opt.SignIn.RequireConfirmedEmail = true;
-
+        
     })
         .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
         (
@@ -67,6 +70,25 @@ builder.Services.AddScoped<ISymmetricEncryptDecrypt, SymmetricEncryptDecrypt>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPrettyEmail, PrettyEmail>();
 builder.Services.AddScoped<ITokensManager, TokensManager>();
+
+
+//Adding authentication scheme
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:SecretKey").Value)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+        };
+    });
 
 var app = builder.Build();
 
