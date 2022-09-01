@@ -1,0 +1,10 @@
+<div class="row">
+    <div class="col-md-6 offset-md-3 mt-4">
+      <div class="alert alert-success" *ngIf="success && !fail" role="alert">
+        supprime avec succes !
+      </div>
+      <div class="alert alert-warning" *ngIf="fail && !success" role="alert">
+        Une erreur s'est produite !
+      </div>
+    </div>
+</div>
