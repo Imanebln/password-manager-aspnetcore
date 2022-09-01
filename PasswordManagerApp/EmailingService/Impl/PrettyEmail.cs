@@ -75,5 +75,13 @@ namespace EmailingService.Impl
             email.To = to;
             await SendEmailAsync(email);
         }
+
+        public async Task Send2FAToken(string to,string token)
+        {
+            Email email = GetEmail("2FA_CODE", null);
+            email.To = to;
+            email.EmailBody.Message += "\n" + token;
+            await SendEmailAsync(email);
+        }
     }
 }
