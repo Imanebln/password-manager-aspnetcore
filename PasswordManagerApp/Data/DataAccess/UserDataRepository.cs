@@ -26,6 +26,16 @@ namespace Data.DataAccess
             return await _dataAccess.GetRecordById<UserDataModel>("Users_data", id);
         }
 
+        public async Task<ApplicationUser> GetUserById(Guid id)
+        {
+            return await _dataAccess.GetRecordById<ApplicationUser>("Users", id);
+        }
+
+        public async Task UpdateUser(ApplicationUser user, Guid id)
+        {
+            await _dataAccess.UpdateRecord("Users", id, user);
+        }
+
         public async Task InsertData(UserDataModel userData)
         {
             await _dataAccess.InsertRecord("Users_data", userData);

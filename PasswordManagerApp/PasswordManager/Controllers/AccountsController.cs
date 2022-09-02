@@ -4,6 +4,7 @@ using Data.DataAccess;
 using Data.Models;
 using Data.Models.Email;
 using EmailingService.Contracts;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -103,6 +104,16 @@ namespace PasswordManager.Controllers
                 if (await _userManager.GetTwoFactorEnabledAsync(user))
                     return await GenerateOTPForTwoFactorAuth(user.Email);
 
+                var refreshToken = _tokensManager.GenerateRefreshToken();
+                try
+                {
+                    await _tokensManager.SetRefreshToken(user, refreshToken);
+                }
+                catch(Exception ex)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                }
+                
 
                 _logger.LogInformation("Attempting to generate access token");
                 return Ok(await _tokensManager.GenerateToken(user));
@@ -111,6 +122,32 @@ namespace PasswordManager.Controllers
 
             return BadRequest(ModelState);
         }
+
+        [Authorize]
+        [HttpGet("refresh-token")]
+        public async Task<ActionResult<RefreshTokenModel>> GenerateNewRefreshToken()
+        {
+            var userName = _httpContext.HttpContext.User.Identity.Name;
+            
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user is null)
+                return NotFound("User not found");
+
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (!user.RefreshToken.Token.Equals(refreshToken))
+                return Unauthorized("Invalid refresh token");
+            if (user.RefreshToken.ExpirationDate < DateTime.Now)
+                return Unauthorized("Refresh Token Expired");
+
+            var token = await _tokensManager.GenerateToken(user);
+            var newRefreshToken = _tokensManager.GenerateRefreshToken();
+            await _tokensManager.SetRefreshToken(user, newRefreshToken);
+
+            return Ok(token);
+        }
+
+
         // Send email to confirm 
         private async Task<string> ValidationEmail(ApplicationUser user)
         {

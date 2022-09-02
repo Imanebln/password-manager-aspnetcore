@@ -9,5 +9,7 @@ namespace Data.DataAccess
         Task<UserDataModel> GetDataById(Guid id);
         Task InsertData(UserDataModel userData);
         Task UpdateData(UserDataModel userData, Guid id);
+        Task<ApplicationUser> GetUserById(Guid id);
+        Task UpdateUser(ApplicationUser user, Guid id);
     }
 }
