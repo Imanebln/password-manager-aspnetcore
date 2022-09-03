@@ -116,26 +116,35 @@ namespace PasswordManager.Controllers
                 
 
                 _logger.LogInformation("Attempting to generate access token");
-                return Ok(await _tokensManager.GenerateToken(user));
+
+                return Ok(new
+                {
+                    accessToken = await _tokensManager.GenerateToken(user),
+                    refreshToken
+                });
 
             }
 
             return BadRequest(ModelState);
         }
 
-        [Authorize]
-        [HttpGet("refresh-token")]
-        public async Task<ActionResult<RefreshTokenModel>> GenerateNewRefreshToken()
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<RefreshTokenModel>> RefreshToken(TokenApiModel apiModel)
         {
-            var userName = _httpContext.HttpContext.User.Identity.Name;
-            
+            var principal = _tokensManager.GetPrincipalFromExpiredToken(apiModel.AccessToken);
+            var userName = principal.Identity.Name;
+
             var user = await _userManager.FindByNameAsync(userName);
             if (user is null)
                 return NotFound("User not found");
 
             var refreshToken = Request.Cookies["refreshToken"];
 
-            if (!user.RefreshToken.Token.Equals(refreshToken))
+            if (refreshToken is null)
+                refreshToken = apiModel.RefreshToken;
+
+            if (user.RefreshToken is null ||  !user.RefreshToken.Token.Equals(refreshToken))
                 return Unauthorized("Invalid refresh token");
             if (user.RefreshToken.ExpirationDate < DateTime.Now)
                 return Unauthorized("Refresh Token Expired");
@@ -144,7 +153,32 @@ namespace PasswordManager.Controllers
             var newRefreshToken = _tokensManager.GenerateRefreshToken();
             await _tokensManager.SetRefreshToken(user, newRefreshToken);
 
-            return Ok(token);
+            return Ok(new
+            {
+                accessToken = token,
+                refreshToken = newRefreshToken
+            });
+        }
+
+        [HttpGet("revoke-refresh-token"),Authorize]
+        public async Task<IActionResult> RevokeRefreshToken()
+        {
+            var userName = _httpContext.HttpContext.User.Identity.Name;
+
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user is null)
+                return NotFound("User not found");
+
+            try
+            {
+                await _tokensManager.RevokeRefreshToken(user);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+            return Ok("Successfuly revoked");
         }
 
 

@@ -117,5 +117,41 @@ namespace AuthenticationService
                 await _userData.UpdateUser(userModel, user.Id);
 
         }
+
+        /// <summary>
+        /// This methods gets the principal from an expired access token.
+        /// </summary>
+        /// <param name="token">The expired access token.</param>
+        /// <returns>ClaimsPrincipal of the access token.</returns>
+        /// <exception cref="SecurityTokenException">Throws SecurityTokenException when access token is in invalid format.</exception>
+        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:SecretKey").Value)),
+                ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512Signature, StringComparison.InvariantCultureIgnoreCase))
+                throw new SecurityTokenException("Invalid token");
+            return principal;
+        }
+
+        public async Task RevokeRefreshToken(ApplicationUser user)
+        {
+            var userModel = await _userData.GetUserById(user.Id);
+
+            if (userModel is null)
+                throw new NullReferenceException("Could not find user.");
+
+            userModel.RefreshToken = null;
+
+            await _userData.UpdateUser(userModel, userModel.Id);
+        }
     }
 }
