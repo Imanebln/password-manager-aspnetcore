@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using PasswordEncryption.Contracts;
+using System.Security.Claims;
 using System.Web;
 
 namespace PasswordManager.Controllers
@@ -132,7 +134,16 @@ namespace PasswordManager.Controllers
         [HttpPost("refresh-token")]
         public async Task<ActionResult<RefreshTokenModel>> RefreshToken(TokenApiModel apiModel)
         {
-            var principal = _tokensManager.GetPrincipalFromExpiredToken(apiModel.AccessToken);
+            ClaimsPrincipal principal;
+            try
+            {
+                principal = _tokensManager.GetPrincipalFromExpiredToken(apiModel.AccessToken);
+            }
+            catch (SecurityTokenSignatureKeyNotFoundException)
+            {
+                return Unauthorized("Access token is corrupted.");
+            }
+            
             var userName = principal.Identity.Name;
 
             var user = await _userManager.FindByNameAsync(userName);
