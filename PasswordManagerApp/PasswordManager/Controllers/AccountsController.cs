@@ -4,11 +4,14 @@ using Data.DataAccess;
 using Data.Models;
 using Data.Models.Email;
 using EmailingService.Contracts;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using PasswordEncryption.Contracts;
+using System.Security.Claims;
 using System.Web;
 
 namespace PasswordManager.Controllers
@@ -103,14 +106,93 @@ namespace PasswordManager.Controllers
                 if (await _userManager.GetTwoFactorEnabledAsync(user))
                     return await GenerateOTPForTwoFactorAuth(user.Email);
 
+                var refreshToken = _tokensManager.GenerateRefreshToken();
+                try
+                {
+                    await _tokensManager.SetRefreshToken(user, refreshToken);
+                }
+                catch(Exception ex)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                }
+                
 
                 _logger.LogInformation("Attempting to generate access token");
-                return Ok(await _tokensManager.GenerateToken(user));
+
+                return Ok(new
+                {
+                    accessToken = await _tokensManager.GenerateToken(user),
+                    refreshToken
+                });
 
             }
 
             return BadRequest(ModelState);
         }
+
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<RefreshTokenModel>> RefreshToken(TokenApiModel apiModel)
+        {
+            ClaimsPrincipal principal;
+            try
+            {
+                principal = _tokensManager.GetPrincipalFromExpiredToken(apiModel.AccessToken);
+            }
+            catch (SecurityTokenSignatureKeyNotFoundException)
+            {
+                return Unauthorized("Access token is corrupted.");
+            }
+            
+            var userName = principal.Identity.Name;
+
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user is null)
+                return NotFound("User not found");
+
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (refreshToken is null)
+                refreshToken = apiModel.RefreshToken;
+
+            if (user.RefreshToken is null ||  !user.RefreshToken.Token.Equals(refreshToken))
+                return Unauthorized("Invalid refresh token");
+            if (user.RefreshToken.ExpirationDate < DateTime.Now)
+                return Unauthorized("Refresh Token Expired");
+
+            var token = await _tokensManager.GenerateToken(user);
+            var newRefreshToken = _tokensManager.GenerateRefreshToken();
+            await _tokensManager.SetRefreshToken(user, newRefreshToken);
+
+            return Ok(new
+            {
+                accessToken = token,
+                refreshToken = newRefreshToken
+            });
+        }
+
+        [HttpGet("revoke-refresh-token"),Authorize]
+        public async Task<IActionResult> RevokeRefreshToken()
+        {
+            var userName = _httpContext.HttpContext.User.Identity.Name;
+
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user is null)
+                return NotFound("User not found");
+
+            try
+            {
+                await _tokensManager.RevokeRefreshToken(user);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+            return Ok("Successfuly revoked");
+        }
+
+
         // Send email to confirm 
         private async Task<string> ValidationEmail(ApplicationUser user)
         {
