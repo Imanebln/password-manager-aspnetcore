@@ -11,7 +11,7 @@ namespace Data.Models
     [CollectionName("Users")]
     public class ApplicationUser : MongoIdentityUser<Guid>
     {
-        public string RefreshToken { get; set; } = string.Empty;
+        public RefreshTokenModel? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
         public string IVBase64 { get; set; } = string.Empty;
     }

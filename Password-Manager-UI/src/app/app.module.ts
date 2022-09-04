@@ -13,6 +13,7 @@ import { JwtModule } from '@auth0/angular-jwt';
 import { AuthGuard } from './Guards/auth.guard';
 import { ResetPasswordComponent } from './Components/reset-password/reset-password.component';
 import { RecoverPasswordComponent } from './Components/recover-password/recover-password.component';
+import { AlertComponent } from './alert/alert/alert.component';
 
 export function tokenGetter() {
   return localStorage.getItem('jwt');
@@ -25,6 +26,7 @@ export function tokenGetter() {
     DashboardComponent,
     ResetPasswordComponent,
     RecoverPasswordComponent,
+    AlertComponent,
   ],
   imports: [
     BrowserModule,
