@@ -53,5 +53,27 @@ namespace Data.DataAccess
             var filter = Builders<T>.Filter.Eq("_id", id);
             return await collection.DeleteOneAsync(filter);
         }
+
+        public async Task<T> GetRecordByPropValue<T, U>(string table, U value, string propName)
+        {
+            var collection = _database.GetCollection<T>(table);
+            var filter = Builders<T>.Filter.Eq(propName, value);
+
+            return (await collection.FindAsync(filter)).FirstOrDefault();
+        }
+
+        public async Task<ReplaceOneResult> UpdateDataByPropValue<T,U>(string table, U value, T record, string propName) where U : BsonValue
+        {
+            var collection = _database.GetCollection<T>(table);
+            return await collection.ReplaceOneAsync(new BsonDocument(propName, value), record);
+        }
+
+        public async Task<DeleteResult> DeleteRecordByPropValue<T, U>(string table, U value, string propName)
+        {
+            var collection = _database.GetCollection<T>(table);
+            var filter = Builders<T>.Filter.Eq<U>(propName, value);
+            
+            return await collection.DeleteOneAsync(filter);
+        }
     }
 }
