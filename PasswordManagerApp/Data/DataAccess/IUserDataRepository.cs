@@ -11,5 +11,7 @@ namespace Data.DataAccess
         Task UpdateData(UserDataModel userData, Guid id);
         Task<ApplicationUser> GetUserById(Guid id);
         Task UpdateUser(ApplicationUser user, Guid id);
+        Task<UserDataModel> GetDataByUserId(Guid id);
+        Task DeleteDataByUserId(Guid id);
     }
 }

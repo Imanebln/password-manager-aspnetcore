@@ -40,7 +40,7 @@ namespace AuthenticationService
             var refreshToken = new RefreshTokenModel
             {
                 Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-                ExpirationDate = DateTime.Now.AddDays(7),
+                ExpirationDate = DateTime.Now.AddDays(30),
                 CreationDate = DateTime.Now
             };
 
@@ -77,12 +77,12 @@ namespace AuthenticationService
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(1),
+                expires: DateTime.UtcNow.AddMinutes(30),
                 signingCredentials: credentials);
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             
-            return new AccessTokenModel(jwt, DateTime.Now, DateTime.UtcNow.AddDays(1), userRoles);
+            return new AccessTokenModel(jwt, DateTime.Now, DateTime.UtcNow.AddMinutes(30), userRoles);
 
         }
 
