@@ -1,0 +1,28 @@
+<div class="container-fluid ps-md-0">
+    <div class="row g-0">
+      <div class="d-none d-md-flex col-md-4 col-lg-6 bg-image"></div>
+      <div class="col-md-8 col-lg-6">
+        <div class="login d-flex align-items-center py-5">
+          <div class="container">
+            <div class="row">
+              <div class="container height-100 d-flex justify-content-center align-items-center">
+                <div class="position-relative"> 
+                    <div class="card p-2 text-center"> 
+                        <img src="assets/multimedia-icon-padlock.png" class="img" width="70px" height="70px" alt="security icon">
+                        <h6>Please enter the code <br> to verify your account</h6>
+                        <div> <span>A code has been sent to</span> 
+                        <small> your email</small> 
+                        <form [formGroup]="twoFAForm" (ngSubmit)="onSubmit()">
+                        <input class="m-2 text-center form-control rounded" type="text" id="first" maxlength="6" name="provider" formControlName="provider" /> 
+                        <button class="btn btn-lg btn-primary btn-login fw-bold mb-3" type="submit">Continue</button>
+                        </form>
+                    </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

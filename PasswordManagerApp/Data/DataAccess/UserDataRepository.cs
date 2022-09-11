@@ -26,6 +26,11 @@ namespace Data.DataAccess
             return await _dataAccess.GetRecordById<UserDataModel>("Users_data", id);
         }
 
+        public async Task<UserDataModel> GetDataByUserId(Guid id)
+        {
+            return await _dataAccess.GetRecordByPropValue<UserDataModel, Guid>("Users_data", id, "UserId");
+        }
+
         public async Task<ApplicationUser> GetUserById(Guid id)
         {
             return await _dataAccess.GetRecordById<ApplicationUser>("Users", id);
@@ -50,5 +55,11 @@ namespace Data.DataAccess
         {
             await _dataAccess.DeleteRecord<UserDataModel>("Users_data", id);
         }
+
+        public async Task DeleteDataByUserId(Guid id)
+        {
+            await _dataAccess.DeleteRecordByPropValue<UserDataModel,Guid>("Users_data", id, "UserId");
+        }
+
     }
 }

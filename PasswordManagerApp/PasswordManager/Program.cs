@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
+using PasswordManager.ActionFilters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,9 @@ builder.Services.AddSingleton(mongoDbConfig);
 builder.Services.AddSingleton<IMongoDbDataAccess, MongoDbDataAccess>();
 // Inject userDataRepository
 builder.Services.AddSingleton<IUserDataRepository, UserDataRepository>();
+
+//Registered Action filter
+builder.Services.AddScoped<GetCurrentUserActionFilter>();
 
 builder.Services.AddHttpContextAccessor();
 //creating a logger from configuration

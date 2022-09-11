@@ -28,4 +28,16 @@ export class AuthService {
   resetPassword(model: any){
     return this.http.post(this.apiUrl + 'Accounts/reset-password', model);
   }
+
+  // 2FA Config
+  set_2fa(model: boolean)
+  {
+    return this.http.get(this.apiUrl + 'Accounts/Set-2fa?enabled=' + model);
+  }
+  send_2fa_code(email: string){
+    return this.http.get(this.apiUrl + 'Accounts/send-2fa-code?email=' + email);
+  }
+  login_2fa(model: any){
+    return this.http.post(this.apiUrl + 'Accounts/2fa-login', model);
+  }
 }
