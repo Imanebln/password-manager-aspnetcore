@@ -26,7 +26,10 @@
     "@fortawesome/free-solid-svg-icons": "^6.1.2",
     "bootstrap": "^5.2.0",
     "font-awesome": "^4.7.0",
+    "jquery": "^3.6.1",
     "rxjs": "~7.5.0",
+    "save": "^2.5.0",
+    "startbootstrap-sb-admin-2": "^4.1.4",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
   },
