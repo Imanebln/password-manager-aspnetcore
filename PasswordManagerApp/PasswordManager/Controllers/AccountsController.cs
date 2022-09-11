@@ -322,13 +322,13 @@ namespace PasswordManager.Controllers
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
             await _emailSender.Send2FAToken(user.Email, token);
 
-            return Ok(new { Is2FARequired = true, Provider = "Email" });
+            return Ok(new { Is2FARequired = true, Provider = "Email",Username = user.UserName });
         }
 
         [HttpPost("2fa-login")]
         public async Task<IActionResult> LoginWithOTP(OTPLoginModel loginModel)
         {
-            var user = await _userManager.FindByEmailAsync(loginModel.Email);
+            var user = await _userManager.FindByNameAsync(loginModel.Username);
             if (user is null)
                 return NotFound("User not found");
 
@@ -337,7 +337,21 @@ namespace PasswordManager.Controllers
             if (!isValid)
                 return Unauthorized("Invalid token.");
 
-            return Ok(await _tokensManager.GenerateToken(user));
+            var refreshToken = _tokensManager.GenerateRefreshToken();
+            try
+            {
+                await _tokensManager.SetRefreshToken(user, refreshToken);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+            return Ok(new
+            {
+                accessToken = await _tokensManager.GenerateToken(user),
+                refreshToken
+            });
         }
         
         
