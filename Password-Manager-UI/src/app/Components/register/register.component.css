@@ -1,0 +1,31 @@
+.login {
+    min-height: 100vh;
+  }
+  
+  .bg-image {
+    background-image: url('https://cdn.pixabay.com/photo/2020/05/24/00/12/texture-5211851_960_720.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.9;
+  }
+  
+  .login-heading {
+    font-weight: 300;
+  }
+  .inp{
+    border-color:deepskyblue;
+  }
+  
+  .btn-login {
+    font-size: 0.9rem;
+    letter-spacing: 0.05rem;
+    padding: 0.75rem 1rem;
+  }
+  .imgText{
+    font-weight: 600;
+    font-size: 70px;
+    color: rgb(255, 255, 255);
+  }
+  .small{
+    text-decoration: none;
+  }

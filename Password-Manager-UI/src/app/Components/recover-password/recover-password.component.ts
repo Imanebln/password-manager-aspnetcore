@@ -27,10 +27,14 @@ export class RecoverPasswordComponent implements OnInit {
     this.authservice.requestPassReset(this.recoverPassForm.value).subscribe({
       next: (res: any) => {
         console.log(res);
+        this.router.navigate(['verification']);
         // success alert goes here 
       },
       error: (err: HttpErrorResponse) => {
         console.log(err);
+        if(err.status == 200){
+          this.router.navigate(['verification']);
+        }
         // error alert goes here
       }
     })

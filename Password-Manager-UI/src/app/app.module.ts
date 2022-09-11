@@ -14,6 +14,8 @@ import { AuthGuard } from './Guards/auth.guard';
 import { ResetPasswordComponent } from './Components/reset-password/reset-password.component';
 import { RecoverPasswordComponent } from './Components/recover-password/recover-password.component';
 import { AlertComponent } from './alert/alert/alert.component';
+import { VerificationLinkComponent } from './Components/verification-link/verification-link.component';
+import { TwoFaLoginComponent } from './Components/two-fa-login/two-fa-login.component';
 
 export function tokenGetter() {
   return localStorage.getItem('jwt');
@@ -27,6 +29,8 @@ export function tokenGetter() {
     ResetPasswordComponent,
     RecoverPasswordComponent,
     AlertComponent,
+    VerificationLinkComponent,
+    TwoFaLoginComponent,
   ],
   imports: [
     BrowserModule,

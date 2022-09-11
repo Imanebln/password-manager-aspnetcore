@@ -44,12 +44,12 @@ export class RegisterComponent implements OnInit {
     this.authService.signUp(this.signUpForm.value).subscribe({
       next: () => {
         // show success alert here
-        this.router.navigate(['login']);
+        this.router.navigate(['verification']);
       },
       error: (err: HttpErrorResponse) => {
         // show error alert here
         if(err.status == 200){
-          this.router.navigate(['login']);
+          this.router.navigate(['verification']);
         }
         console.log(err);
         
