@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TwoFAModel } from 'src/app/Models/TwoFAModel';
 import { AuthService } from 'src/app/Services/auth.service';
 
 @Component({
@@ -10,8 +11,11 @@ import { AuthService } from 'src/app/Services/auth.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
+  @Output() redirect:EventEmitter<any> = new EventEmitter();
 
   signInForm!: FormGroup;
+  res: any;
+  
   constructor(
     private router: Router,
     private authService: AuthService
@@ -32,10 +36,20 @@ export class LoginComponent implements OnInit {
     this.authService.signIn(this.signInForm.value).subscribe({
       next: (response: any) => {
         // show success alert here
-        const token = response.accessToken.accessToken;
-        console.log(response);
-        localStorage.setItem('jwt', token);
-        this.router.navigate(['dashboard']);
+        
+        console.log(response.username);
+        if(response.is2FARequired == true){
+          this.res = {... response};
+          this.redirect.emit(this.res);
+          this.router.navigate(['two-fa-login',this.res]);
+        }
+        else{
+          const token = response.accessToken.accessToken;
+          localStorage.setItem('jwt', token);
+          this.router.navigate(['dashboard']);
+        }
+        
+        
       },
       error: (err: HttpErrorResponse) => {
         // show error alert here

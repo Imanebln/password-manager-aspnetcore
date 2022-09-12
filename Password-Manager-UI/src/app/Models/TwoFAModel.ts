@@ -1,6 +1,6 @@
 
 export interface TwoFAModel{
-    email: string,
-    token: string,
-    provider: number
+    username?: string,
+    token?: string,
+    provider?: string
 }

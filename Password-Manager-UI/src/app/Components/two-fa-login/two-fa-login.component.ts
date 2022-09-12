@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TwoFAModel } from './../../Models/TwoFAModel';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/Services/auth.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -12,41 +12,44 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 })
 export class TwoFaLoginComponent implements OnInit {
 
+  // @Input() twoFAModel!: TwoFAModel;
+  
   twoFAForm!: FormGroup;
-  twoFAModel!: TwoFAModel;
+  res: any;
+  twoFAModel: TwoFAModel = <TwoFAModel>{};
   
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
+    this.res = this.route.snapshot.params;
+
+    console.log(this.res.username + " " + this.res.provider);
     this.twoFAForm = new FormGroup({
-      provider: new FormControl(null, [Validators.required]),
+      token: new FormControl(null, [Validators.required]),
     })
   }
 
   onSubmit(){
-    // retreive email and token from url params
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-
-    this.twoFAModel.email = urlParams.get('email') + '';
-    this.twoFAModel.token = urlParams.get('token') + '';
-    this.twoFAModel.provider = this.twoFAForm.value.provider;
+    this.twoFAModel.username = this.res.username;
+    this.twoFAModel.provider = this.res.provider;
+    this.twoFAModel.token = this.twoFAForm.value.token;
 
     this.authService.login_2fa(this.twoFAModel).subscribe({
-      next: (res:any) => {
-        console.log(this.twoFAModel.email + " " + this.twoFAModel.provider);
-        console.log(res);
+      next: (resp:any) => {
+        console.log(resp);
+        const token = resp.accessToken.accessToken;
+        localStorage.setItem('jwt', token);
         this.router.navigate(['dashboard']);
       },
       error: (err: HttpErrorResponse) => {
-        console.log(this.twoFAModel.email + " " + this.twoFAModel.provider);
         console.log(err);
-        if(err.status == 200){
-          this.router.navigate((['dashboard']));
-        }
+        // if(err.status == 200){
+        //   this.router.navigate((['dashboard']));
+        // }
       }
     })
   }
