@@ -1,3 +1,4 @@
+import { ActivatedRoute } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -7,9 +8,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class VerificationLinkComponent implements OnInit {
 
-  constructor() { }
+  data!: any;
+
+  constructor(
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
+    this.data = this.route.snapshot.params;
+    console.log(this.data);
+    
   }
 
 }
