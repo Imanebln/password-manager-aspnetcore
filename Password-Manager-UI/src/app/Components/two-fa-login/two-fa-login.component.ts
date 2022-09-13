@@ -27,6 +27,14 @@ export class TwoFaLoginComponent implements OnInit {
   ngOnInit(): void {
     this.res = this.route.snapshot.params;
 
+    this.router.navigate(['two-fa-login'], {
+      queryParams: {
+        'yourParamName': null,
+        'youCanRemoveMultiple': null,
+      },
+      queryParamsHandling: 'merge'
+    })
+
     console.log(this.res.username + " " + this.res.provider);
     this.twoFAForm = new FormGroup({
       token: new FormControl(null, [Validators.required]),
