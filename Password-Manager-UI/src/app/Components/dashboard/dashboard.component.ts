@@ -1,3 +1,4 @@
+import { UserService } from './../../Services/user.service';
 import { Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 
@@ -8,11 +9,23 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
 
+  user: any;
+
   constructor(
-    private router: Router
+    private router: Router,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
+    this.userService.getCurrrentUser().subscribe(
+      {
+        next: (res:any) =>{
+          this.user = {...res.accountInfos};
+          console.log(res.accountInfos);
+          
+        }
+      }
+    )
   }
 
   logout(){

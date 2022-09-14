@@ -16,6 +16,7 @@ import { RecoverPasswordComponent } from './Components/recover-password/recover-
 import { AlertComponent } from './alert/alert/alert.component';
 import { VerificationLinkComponent } from './Components/verification-link/verification-link.component';
 import { TwoFaLoginComponent } from './Components/two-fa-login/two-fa-login.component';
+import { DoughnutChartComponent } from './Components/Charts/doughnut-chart/doughnut-chart.component';
 
 export function tokenGetter() {
   return localStorage.getItem('jwt');
@@ -31,6 +32,7 @@ export function tokenGetter() {
     AlertComponent,
     VerificationLinkComponent,
     TwoFaLoginComponent,
+    DoughnutChartComponent,
   ],
   imports: [
     BrowserModule,
