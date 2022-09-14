@@ -56,7 +56,7 @@ namespace AuthenticationService
         public async Task<AccessTokenModel> GenerateToken(ApplicationUser user)
         {
 
-            List<Claim> claims = new List<Claim>
+            List<Claim> claims = new()
             {
                 new Claim(ClaimTypes.Name,user.UserName),
             };
@@ -82,7 +82,7 @@ namespace AuthenticationService
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             
-            return new AccessTokenModel(jwt, DateTime.Now, DateTime.UtcNow.AddMinutes(30), userRoles);
+            return new AccessTokenModel(jwt, DateTime.Now, DateTime.UtcNow.AddMinutes(30), userRoles,user.UserName);
 
         }
 
@@ -107,8 +107,7 @@ namespace AuthenticationService
                 if (userModel is null)
                     throw new NullReferenceException("Could not find user.");
 
-                if (userModel.RefreshToken is null)
-                    userModel.RefreshToken = new RefreshTokenModel();
+                userModel.RefreshToken ??= new RefreshTokenModel();
 
                 userModel.RefreshToken.Token = refreshToken.Token;
                 userModel.RefreshToken.CreationDate = refreshToken.CreationDate;

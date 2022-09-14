@@ -84,6 +84,18 @@ namespace PasswordManager.Controllers
             return BadRequest(ModelState);
         }
 
+        [HttpGet("send-email-confirmation")]
+        public async Task<IActionResult> SendEmailConfirmation(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user is null)
+                return NotFound("Username not found");
+
+            await ValidationEmail(user);
+
+            return Ok("Confirmation email sent.");
+        }
+
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
@@ -118,10 +130,12 @@ namespace PasswordManager.Controllers
                 
 
                 _logger.LogInformation("Attempting to generate access token");
+                var accessToken = await _tokensManager.GenerateToken(user);
+                
 
                 return Ok(new
                 {
-                    accessToken = await _tokensManager.GenerateToken(user),
+                    accessToken,
                     refreshToken
                 });
 
@@ -152,8 +166,7 @@ namespace PasswordManager.Controllers
 
             var refreshToken = Request.Cookies["refreshToken"];
 
-            if (refreshToken is null)
-                refreshToken = apiModel.RefreshToken;
+            refreshToken ??= apiModel.RefreshToken;
 
             if (user.RefreshToken is null ||  !user.RefreshToken.Token.Equals(refreshToken))
                 return Unauthorized("Invalid refresh token");
@@ -226,6 +239,8 @@ namespace PasswordManager.Controllers
             return StatusCode(StatusCodes.Status500InternalServerError, "Could not confirm email");
 
         }
+
+        
 
         [HttpPost("request-password-reset")]
         public async Task<IActionResult> RequestNewPassword(RequestPasswordResetModel requestPasswordResetModel)
