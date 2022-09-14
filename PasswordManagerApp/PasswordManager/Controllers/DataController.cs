@@ -72,6 +72,8 @@ namespace PasswordManager.Controllers
             if (oldUserData.Id != userDataModel.Id)
                 return BadRequest("You cannot change id of a record");
 
+            userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid(); return ai; });
+
             await _userData.UpdateData(userDataModel, oldUserData.Id);
 
             return NoContent();
