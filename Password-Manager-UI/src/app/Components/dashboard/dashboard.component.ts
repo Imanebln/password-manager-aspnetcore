@@ -17,15 +17,8 @@ export class DashboardComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.userService.getCurrrentUser().subscribe(
-      {
-        next: (res:any) =>{
-          this.user = {...res.accountInfos};
-          console.log(res.accountInfos);
-          
-        }
-      }
-    )
+    const data = localStorage.getItem('user-data');
+    this.user = data;
   }
 
   logout(){
