@@ -29,6 +29,12 @@ export class AuthService {
     return this.http.post(this.apiUrl + 'Accounts/reset-password', model);
   }
 
+  // send email confirmation
+  send_email_confirmation(email: any){
+    return this.http.get(this.apiUrl + 'Accounts/send-email-confirmation?email=' + email);
+
+ }
+
   // 2FA Config
   set_2fa(model: boolean)
   {

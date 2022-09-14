@@ -1,3 +1,5 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from 'src/app/Services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 
@@ -9,10 +11,12 @@ import { Component, OnInit } from '@angular/core';
 export class VerificationLinkComponent implements OnInit {
 
   data!: any;
+  email!: string;
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
 
   ) { }
 
@@ -28,8 +32,23 @@ export class VerificationLinkComponent implements OnInit {
       queryParamsHandling: 'merge'
     })
 
-    console.log(this.data);
+    this.email = this.data.email;
+    console.log(this.email);
     
+  }
+
+  sendAgain(){
+    this.authService.send_email_confirmation(this.email).subscribe({
+      next: (res: any) => {
+        console.log(res);
+        // success alert goes here
+      },
+      error: (err: HttpErrorResponse) => {
+        console.log(err);
+        // error alert goes here
+        
+      }
+    })
   }
 
 }

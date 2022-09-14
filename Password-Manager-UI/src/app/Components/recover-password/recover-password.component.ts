@@ -32,15 +32,15 @@ export class RecoverPasswordComponent implements OnInit {
       next: (res: any) => {
         console.log(res);
         this.data = {... this.recoverPassForm};
-        this.redirect.emit(this.data);
-        this.router.navigate(['verification',this.data]);
+        // this.redirect.emit(this.data);
+        // this.router.navigate(['verification',this.data]);
         // success alert goes here 
       },
       error: (err: HttpErrorResponse) => {
         console.log(err);
         if(err.status == 200){
-          this.data = {... this.recoverPassForm.value};
-          this.router.navigate(['verification',this.data]);
+          // this.data = {... this.recoverPassForm.value};
+          // this.router.navigate(['verification',this.data]);
         }
         // error alert goes here
       }

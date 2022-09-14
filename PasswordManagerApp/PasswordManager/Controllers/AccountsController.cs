@@ -233,7 +233,7 @@ namespace PasswordManager.Controllers
            var result =  await _userManager.ConfirmEmailAsync(user, token);
 
             if (result.Succeeded)
-                return Redirect("https://localhost:7077/swagger/index.html");
+                return Redirect("http://localhost:4200/login");
 
             _logger.LogError("Email not confirmed");
             return StatusCode(StatusCodes.Status500InternalServerError, "Could not confirm email");

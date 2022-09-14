@@ -12,6 +12,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class RegisterComponent implements OnInit {
 
   signUpForm!: FormGroup;
+  data: any;
 
   constructor(
     private router: Router,
@@ -44,12 +45,14 @@ export class RegisterComponent implements OnInit {
     this.authService.signUp(this.signUpForm.value).subscribe({
       next: () => {
         // show success alert here
-        this.router.navigate(['verification']);
+        this.data = {... this.signUpForm.value};
+        this.router.navigate(['verification',this.data]);
       },
       error: (err: HttpErrorResponse) => {
         // show error alert here
         if(err.status == 200){
-          this.router.navigate(['verification']);
+          this.data = {... this.signUpForm.value};
+          this.router.navigate(['verification',this.data]);
         }
         console.log(err);
         
