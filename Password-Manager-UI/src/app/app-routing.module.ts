@@ -1,3 +1,4 @@
+import { UserPasswordsComponent } from './Components/user-passwords/user-passwords.component';
 import { VerificationLinkComponent } from './Components/verification-link/verification-link.component';
 import { ResetPasswordComponent } from './Components/reset-password/reset-password.component';
 import { DashboardComponent } from './Components/dashboard/dashboard.component';
@@ -17,6 +18,7 @@ const routes: Routes = [
   { path: 'recover-password', component: RecoverPasswordComponent},
   { path: 'verification', component: VerificationLinkComponent},
   { path: 'dashboard', component: DashboardComponent, canActivate:[AuthGuard]},
+  { path: 'user', component: UserPasswordsComponent, canActivate:[AuthGuard]},
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 ];
 

@@ -17,6 +17,10 @@ import { AlertComponent } from './alert/alert/alert.component';
 import { VerificationLinkComponent } from './Components/verification-link/verification-link.component';
 import { TwoFaLoginComponent } from './Components/two-fa-login/two-fa-login.component';
 import { DoughnutChartComponent } from './Components/Charts/doughnut-chart/doughnut-chart.component';
+import { PasswordsListComponent } from './Components/passwords-list/passwords-list.component';
+import { NavbarComponent } from './Components/Shared/navbar/navbar.component';
+import { SidebarComponent } from './Components/Shared/sidebar/sidebar.component';
+import { UserPasswordsComponent } from './Components/user-passwords/user-passwords.component';
 
 export function tokenGetter() {
   return localStorage.getItem('jwt');
@@ -33,6 +37,10 @@ export function tokenGetter() {
     VerificationLinkComponent,
     TwoFaLoginComponent,
     DoughnutChartComponent,
+    PasswordsListComponent,
+    NavbarComponent,
+    SidebarComponent,
+    UserPasswordsComponent,
   ],
   imports: [
     BrowserModule,
