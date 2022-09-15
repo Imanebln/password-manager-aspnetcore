@@ -1,4 +1,5 @@
-﻿using PasswordEncryption.Contracts;
+﻿using Microsoft.AspNet.Identity;
+using PasswordEncryption.Contracts;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -55,7 +56,6 @@ namespace PasswordEncryption.Impl
         public string GenerateIVFromKey(string key)
         {
             Aes cipher = CreateCipher(key);
-
             return Convert.ToBase64String(cipher.IV);
         }
 
@@ -87,6 +87,51 @@ namespace PasswordEncryption.Impl
             RandomNumberGenerator.Fill(byteArray);
 
             return byteArray;
+        }
+
+        /// <summary>
+        /// Generate a random key for a user.
+        /// </summary>
+        /// <returns>string of random generated key.</returns>
+        public string GenerateRandomUserKey()
+        {
+            return GetEncodedRandomString(64);
+        }
+
+        /// <summary>
+        /// Generate a kaye derived from a password
+        /// </summary>
+        /// <param name="password">Password of user.</param>
+        /// <returns>A string of key derived from password.</returns>
+        public string DeriveKeyFromPassword(string password)
+        {
+            var hashedPassword = new PasswordHasher().HashPassword(password);
+
+            return hashedPassword;
+        }
+
+        /// <summary>
+        /// Encrypt user key using the password derived key.
+        /// </summary>
+        /// <param name="userKey">User key to encrypt</param>
+        /// <param name="encryptionKey">Encryption key used to encrypt the user key.</param>
+        /// <returns>string of encrypted user key.</returns>
+        public string EncryptUserKey(string userKey,string encryptionKey)
+        {
+            //TODO: Implement method
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Decrypt user key using the password derived key.
+        /// </summary>
+        /// <param name="encryptedUserKey">Encrypted user key to decrypt</param>
+        /// <param name="decryptionKey">Encryption key used to decrypt the user key.</param>
+        /// <returns>string of decrypted user key.</returns>
+        public string DecryptUserKey(string encryptedUserKey, string decryptionKey)
+        { 
+            //TODO: Implement method.
+            return string.Empty;
         }
     }
 }
