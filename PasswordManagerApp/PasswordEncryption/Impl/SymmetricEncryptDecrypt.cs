@@ -104,17 +104,17 @@ namespace PasswordEncryption.Impl
         /// </summary>
         /// <param name="password">Password of user.</param>
         /// <returns>A string of key derived from password.</returns>
-        public (string hashedPassword, string IVBase64) DeriveKeyFromPassword(string password)
+        public (string derivedKey, string IVBase64) DeriveKeyFromPassword(string password)
         {
             UnicodeEncoding UE = new();
 
             byte[] passwordBytes = UE.GetBytes(password);
             byte[] aesKey = SHA256.Create().ComputeHash(passwordBytes);
-            string hashedPassword = Convert.ToBase64String(aesKey);
+            string derivedKey = Convert.ToBase64String(aesKey);
 
             Aes cipher = CreateCipher(Convert.ToBase64String(aesKey));
             var IVBase64 = Convert.ToBase64String(cipher.IV);
-            return (hashedPassword, IVBase64);
+            return (derivedKey, IVBase64);
         }
 
         /// <summary>

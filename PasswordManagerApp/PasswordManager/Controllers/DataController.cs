@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PasswordEncryption.Contracts;
 using PasswordManager.ActionFilters;
 
 namespace PasswordManager.Controllers
@@ -16,12 +17,14 @@ namespace PasswordManager.Controllers
         private readonly IUserDataRepository _userData;
         private readonly IHttpContextAccessor _httpContext;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ISymmetricEncryptDecrypt _symmetricEncryptDecrypt;
 
-        public DataController(IUserDataRepository userData, IHttpContextAccessor httpContext, UserManager<ApplicationUser> userManager )
+        public DataController(IUserDataRepository userData, IHttpContextAccessor httpContext, UserManager<ApplicationUser> userManager, ISymmetricEncryptDecrypt symmetricEncryptDecrypt )
         {
             _userData = userData;
             _httpContext = httpContext;
             _userManager = userManager;
+            _symmetricEncryptDecrypt = symmetricEncryptDecrypt;
         }
 
 
@@ -33,6 +36,13 @@ namespace PasswordManager.Controllers
             var userData = await _userData.GetDataByUserId(user.Id);
             if(userData is null)
                 return NotFound("Could not find any data");
+
+            var decryptionKey = Request.Cookies["decryptionKey"];
+
+            if (decryptionKey is null)
+                return BadRequest("An error occured");
+            // We decrypt user data.
+            userData.AccountInfos = userData.AccountInfos.Select(ai => { ai.EncryptedPassword = _symmetricEncryptDecrypt.Decrypt(ai.EncryptedPassword, ai.EncryptedPasswordIV, decryptionKey); return ai; });
 
             return Ok(userData);
         }
@@ -46,8 +56,18 @@ namespace PasswordManager.Controllers
             if (oldeData is not null)
                 return BadRequest("A user cannot have multiple data.");
 
+            var encryptionKey = Request.Cookies["decryptionKey"];
+            string IVKey = string.Empty;
+
+            if (encryptionKey is null)
+                return BadRequest("An error occured");
+
+            IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
+
+            // Encrypt all passwords
+            userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid();  ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
+
             userDataModel.UserId = user.Id;
-            userDataModel.AccountInfos = userDataModel.AccountInfos.Select(a => { a.Id = Guid.NewGuid(); return a; });
 
 
             await _userData.InsertData(userDataModel);
@@ -72,7 +92,17 @@ namespace PasswordManager.Controllers
             if (oldUserData.Id != userDataModel.Id)
                 return BadRequest("You cannot change id of a record");
 
-            userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid(); return ai; });
+
+            var encryptionKey = Request.Cookies["decryptionKey"];
+            string IVKey = string.Empty;
+
+            if (encryptionKey is null)
+                return BadRequest("An error occured");
+
+            IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
+
+            // We encrypt newly Inserted data
+            userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid(); ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
 
             await _userData.UpdateData(userDataModel, oldUserData.Id);
 

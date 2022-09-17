@@ -44,14 +44,18 @@ namespace PasswordManager.Controllers
         {
             if (ModelState.IsValid)
             {
-                (string key, string IV) = _encryptionService.InitSymmetricEncryptionKeyIV();
-                Console.WriteLine(key);
+                // Generating a random userKey and encrypting it.
+                var userKey = _encryptionService.GenerateRandomUserKey();
+                (string derivedKey, string IVBase64) = _encryptionService.DeriveKeyFromPassword(userDto.Password);
+
+                var encryptedKey = _encryptionService.EncryptUserKey(userKey, derivedKey, IVBase64);
 
                 ApplicationUser appUser = new()
                 {
                     UserName = userDto.Username,
                     Email = userDto.Email,
-                    EncryptedKeyIV = IV
+                    EncryptedKeyIV = IVBase64,
+                    EncryptedKey = encryptedKey
                 };
 
                 _logger.LogInformation("Attemting to create a user");
@@ -118,7 +122,24 @@ namespace PasswordManager.Controllers
                 if (await _userManager.GetTwoFactorEnabledAsync(user))
                     return await GenerateOTPForTwoFactorAuth(user.Email);
 
+                // Decrypting the user key.
+
+                (string derivedKey, _) = _encryptionService.DeriveKeyFromPassword(loginDto.Password);
+
+                var decryptedKey = _encryptionService.DecryptUserKey(user.EncryptedKey, derivedKey, user.EncryptedKeyIV);
+
+                // Generate refresh token
                 var refreshToken = _tokensManager.GenerateRefreshToken();
+
+                var cookieOption = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = refreshToken.ExpirationDate
+                };
+
+                _httpContext.HttpContext.Response.Cookies.Append("decryptionKey", decryptedKey, cookieOption);
+
+                
                 try
                 {
                     await _tokensManager.SetRefreshToken(user, refreshToken);
@@ -136,7 +157,8 @@ namespace PasswordManager.Controllers
                 return Ok(new
                 {
                     accessToken,
-                    refreshToken
+                    refreshToken,
+                    decryptedKey
                 });
 
             }
