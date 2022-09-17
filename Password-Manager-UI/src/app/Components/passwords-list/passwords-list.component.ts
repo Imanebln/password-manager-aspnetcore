@@ -12,4 +12,8 @@ export class PasswordsListComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  add(){
+    
+  }
+
 }
