@@ -2,6 +2,7 @@
 using PasswordEncryption.Contracts;
 using System.Security.Cryptography;
 using System.Text;
+using System;
 
 namespace PasswordEncryption.Impl
 {
@@ -95,7 +96,7 @@ namespace PasswordEncryption.Impl
         /// <returns>string of random generated key.</returns>
         public string GenerateRandomUserKey()
         {
-            return GetEncodedRandomString(64);
+            return GetEncodedRandomString(16);
         }
 
         /// <summary>
@@ -103,11 +104,17 @@ namespace PasswordEncryption.Impl
         /// </summary>
         /// <param name="password">Password of user.</param>
         /// <returns>A string of key derived from password.</returns>
-        public string DeriveKeyFromPassword(string password)
+        public (string hashedPassword, string IVBase64) DeriveKeyFromPassword(string password)
         {
-            var hashedPassword = new PasswordHasher().HashPassword(password);
+            UnicodeEncoding UE = new();
 
-            return hashedPassword;
+            byte[] passwordBytes = UE.GetBytes(password);
+            byte[] aesKey = SHA256.Create().ComputeHash(passwordBytes);
+            string hashedPassword = Convert.ToBase64String(aesKey);
+
+            Aes cipher = CreateCipher(Convert.ToBase64String(aesKey));
+            var IVBase64 = Convert.ToBase64String(cipher.IV);
+            return (hashedPassword, IVBase64);
         }
 
         /// <summary>
@@ -116,10 +123,10 @@ namespace PasswordEncryption.Impl
         /// <param name="userKey">User key to encrypt</param>
         /// <param name="encryptionKey">Encryption key used to encrypt the user key.</param>
         /// <returns>string of encrypted user key.</returns>
-        public string EncryptUserKey(string userKey,string encryptionKey)
+        public string EncryptUserKey(string userKey,string derivedKey, string encryptionIVBase64)
         {
             //TODO: Implement method
-            return string.Empty;
+            return Encrypt(userKey, encryptionIVBase64, derivedKey);
         }
 
         /// <summary>
@@ -128,10 +135,10 @@ namespace PasswordEncryption.Impl
         /// <param name="encryptedUserKey">Encrypted user key to decrypt</param>
         /// <param name="decryptionKey">Encryption key used to decrypt the user key.</param>
         /// <returns>string of decrypted user key.</returns>
-        public string DecryptUserKey(string encryptedUserKey, string decryptionKey)
+        public string DecryptUserKey(string encryptedUserKey, string derivedKey, string encryptionIVBase64)
         { 
             //TODO: Implement method.
-            return string.Empty;
+            return Decrypt(encryptedUserKey,encryptionIVBase64, derivedKey); 
         }
     }
 }

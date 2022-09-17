@@ -51,7 +51,7 @@ namespace PasswordManager.Controllers
                 {
                     UserName = userDto.Username,
                     Email = userDto.Email,
-                    IVBase64 = IV
+                    EncryptedKeyIV = IV
                 };
 
                 _logger.LogInformation("Attemting to create a user");

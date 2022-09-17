@@ -9,8 +9,8 @@ namespace PasswordEncryption.Contracts
         public string Encrypt(string text, string IV, string key);
         public string Decrypt(string encryptedText, string IV, string key);
         string GenerateRandomUserKey();
-        string DeriveKeyFromPassword(string password);
-        string EncryptUserKey(string userKey, string encryptionKey);
-        string DecryptUserKey(string encryptedUserKey, string decryptionKey);
+        (string hashedPassword, string IVBase64) DeriveKeyFromPassword(string password);
+        string EncryptUserKey(string userKey, string derivedKey, string encryptionIVBase64);
+        string DecryptUserKey(string encryptedUserKey, string derivedKey, string encryptionIVBase64);
     }
 }
