@@ -44,14 +44,18 @@ namespace PasswordManager.Controllers
         {
             if (ModelState.IsValid)
             {
-                (string key, string IV) = _encryptionService.InitSymmetricEncryptionKeyIV();
-                Console.WriteLine(key);
+                // Generating a random userKey and encrypting it.
+                var userKey = _encryptionService.GenerateRandomUserKey();
+                (string derivedKey, string IVBase64) = _encryptionService.DeriveKeyFromPassword(userDto.Password);
+
+                var encryptedKey = _encryptionService.EncryptUserKey(userKey, derivedKey, IVBase64);
 
                 ApplicationUser appUser = new()
                 {
                     UserName = userDto.Username,
                     Email = userDto.Email,
-                    IVBase64 = IV
+                    EncryptedKeyIV = IVBase64,
+                    EncryptedKey = encryptedKey
                 };
 
                 _logger.LogInformation("Attemting to create a user");
@@ -69,6 +73,7 @@ namespace PasswordManager.Controllers
 
                     _logger.LogInformation("Sending confirmation Email");
 
+                    // Send confirmation link
                     await ValidationEmail(appUser);
                     
 
@@ -118,7 +123,24 @@ namespace PasswordManager.Controllers
                 if (await _userManager.GetTwoFactorEnabledAsync(user))
                     return await GenerateOTPForTwoFactorAuth(user.Email);
 
+                // Decrypting the user key.
+
+                (string derivedKey, _) = _encryptionService.DeriveKeyFromPassword(loginDto.Password);
+
+                var decryptedKey = _encryptionService.DecryptUserKey(user.EncryptedKey, derivedKey, user.EncryptedKeyIV);
+
+                // Generate refresh token
                 var refreshToken = _tokensManager.GenerateRefreshToken();
+
+                var cookieOption = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = refreshToken.ExpirationDate
+                };
+
+                _httpContext.HttpContext!.Response.Cookies.Append("decryptionKey", decryptedKey, cookieOption);
+
+                
                 try
                 {
                     await _tokensManager.SetRefreshToken(user, refreshToken);
@@ -136,7 +158,8 @@ namespace PasswordManager.Controllers
                 return Ok(new
                 {
                     accessToken,
-                    refreshToken
+                    refreshToken,
+                    decryptedKey
                 });
 
             }
@@ -158,7 +181,7 @@ namespace PasswordManager.Controllers
                 return Unauthorized("Access token is corrupted.");
             }
             
-            var userName = principal.Identity.Name;
+            var userName = principal.Identity!.Name;
 
             var user = await _userManager.FindByNameAsync(userName);
             if (user is null)
@@ -187,7 +210,7 @@ namespace PasswordManager.Controllers
         [HttpGet("revoke-refresh-token"),Authorize]
         public async Task<IActionResult> RevokeRefreshToken()
         {
-            var userName = _httpContext.HttpContext.User.Identity.Name;
+            var userName = _httpContext.HttpContext!.User.Identity!.Name;
 
             var user = await _userManager.FindByNameAsync(userName);
             if (user is null)
@@ -310,7 +333,7 @@ namespace PasswordManager.Controllers
         [HttpGet("Set-2fa"),Authorize]
         public async Task<IActionResult> Set2FA(bool enabled)
         {
-            var userName = _httpContext.HttpContext.User.Identity.Name;
+            var userName = _httpContext.HttpContext!.User.Identity!.Name;
 
             var user = await _userManager.FindByNameAsync(userName);
             if (user is null)

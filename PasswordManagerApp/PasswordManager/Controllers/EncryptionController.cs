@@ -44,5 +44,24 @@ namespace PasswordManager.Controllers
             return decryptedPassword;        
         }
 
+        // last encryption updates
+
+        [HttpPost("encrypt-decrypt-password-key")]
+        public string EncryptPasswordKey()
+        {
+            string user_key = _symmetricEncryptDecrypt.GenerateRandomUserKey();
+            string password = "Admin12@";
+            var (DerivedKey, IVBase64) = _symmetricEncryptDecrypt.DeriveKeyFromPassword(password);
+            Console.WriteLine("Your password is: " + password);
+            Console.WriteLine("Randomly generated user_key is: " + user_key);
+            Console.WriteLine("Derived key from your password is: " + DerivedKey);
+            Console.WriteLine("IVBase64 key is: " + IVBase64);
+            string encrypted_user_key = _symmetricEncryptDecrypt.EncryptUserKey(user_key, DerivedKey, IVBase64);
+            Console.WriteLine("Encrypted user_key is: " + encrypted_user_key);
+            Console.WriteLine("Decrypted encrypted_user_key is: " + _symmetricEncryptDecrypt.DecryptUserKey(encrypted_user_key, DerivedKey, IVBase64));
+            return _symmetricEncryptDecrypt.EncryptUserKey(user_key,DerivedKey,IVBase64);
+        }
+
+
     }
 }
