@@ -158,7 +158,8 @@ namespace PasswordManager.Controllers
                 return Ok(new
                 {
                     accessToken,
-                    refreshToken
+                    refreshToken,
+                    decryptedKey
                 });
 
             }
