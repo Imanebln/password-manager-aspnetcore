@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PasswordEncryption.Contracts;
 using PasswordManager.ActionFilters;
+using PasswordManager.DTO.UserData;
+using Mapster;
 
 namespace PasswordManager.Controllers
 {
@@ -49,7 +51,7 @@ namespace PasswordManager.Controllers
         }
 
         [HttpPost("insert-current-user-data"),Authorize]
-        public async Task<ActionResult> InsertCurrentUserData(UserDataModel userDataModel)
+        public async Task<ActionResult> InsertCurrentUserData(UserDataModelInsertDTO userDataModelDTO)
         {
             var user = HttpContext.Items["user"] as ApplicationUser;
 
@@ -63,11 +65,13 @@ namespace PasswordManager.Controllers
             if (encryptionKey is null)
                 return BadRequest("An error occured");
 
+            var userDataModel = userDataModelDTO.Adapt<UserDataModel>();
+
             IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
 
             // Encrypt all passwords
             if (userDataModel.AccountInfos is not null)
-                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid();  ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
+                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
 
             userDataModel.UserId = user.Id;
 
@@ -105,7 +109,7 @@ namespace PasswordManager.Controllers
 
             // We encrypt newly Inserted data
             if(userDataModel.AccountInfos is not null && userDataModel.AccountInfos.Any())
-                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid(); ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
+                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => {  ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
 
             await _userData.UpdateData(userDataModel, oldUserData.Id);
 
