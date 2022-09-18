@@ -1,13 +1,5 @@
-﻿using Data.Models;
-using Data.Models.Email;
-using EmailingService.Contracts;
+﻿using Data.Models.Email;
 using EmailingService.Impl;
-using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Priority;
 
@@ -33,7 +25,7 @@ namespace UnitTests.EmailingTests
                 Subject = "Email validation"
 
             };
-            
+
         }
 
         [Fact, Priority(1)]

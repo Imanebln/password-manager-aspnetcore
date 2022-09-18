@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AuthenticationService.Models
+﻿namespace AuthenticationService.Models
 {
     public class AccessTokenModel
     {
-        public AccessTokenModel(string accessToken, DateTime creationDate, DateTime expirationDate, IEnumerable<string> roles,string username)
+        public AccessTokenModel(string accessToken, DateTime creationDate, DateTime expirationDate, IEnumerable<string> roles, string username)
         {
             AccessToken = accessToken;
             CreationDate = creationDate;

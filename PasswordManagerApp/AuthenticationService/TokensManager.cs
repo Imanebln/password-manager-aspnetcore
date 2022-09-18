@@ -5,14 +5,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AuthenticationService
 {
@@ -23,7 +19,7 @@ namespace AuthenticationService
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserDataRepository _userData;
 
-        public TokensManager(IConfiguration configuration, IHttpContextAccessor httpContext,UserManager<ApplicationUser> userManager, IUserDataRepository userData)
+        public TokensManager(IConfiguration configuration, IHttpContextAccessor httpContext, UserManager<ApplicationUser> userManager, IUserDataRepository userData)
         {
             _configuration = configuration;
             _httpContext = httpContext;
@@ -67,7 +63,7 @@ namespace AuthenticationService
                 claims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
-            
+
 
             //generating the secret key using appsettings's key
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:SecretKey").Value));
@@ -81,8 +77,8 @@ namespace AuthenticationService
                 signingCredentials: credentials);
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-            
-            return new AccessTokenModel(jwt, DateTime.Now, DateTime.UtcNow.AddMinutes(30), userRoles,user.UserName);
+
+            return new AccessTokenModel(jwt, DateTime.Now, DateTime.UtcNow.AddMinutes(30), userRoles, user.UserName);
 
         }
 
@@ -91,7 +87,7 @@ namespace AuthenticationService
         /// </summary>
         /// <param name="refreshToken">Refresh Token to add.</param>
         /// <param name="user">User whom we want to set his refresh token.</param>
-        public async Task SetRefreshToken(ApplicationUser user,RefreshTokenModel refreshToken)
+        public async Task SetRefreshToken(ApplicationUser user, RefreshTokenModel refreshToken)
         {
             var cookieOption = new CookieOptions
             {
@@ -100,20 +96,20 @@ namespace AuthenticationService
             };
 
             _httpContext.HttpContext.Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOption);
-           
 
-                var userModel = await _userData.GetUserById(user.Id);
 
-                if (userModel is null)
-                    throw new NullReferenceException("Could not find user.");
+            var userModel = await _userData.GetUserById(user.Id);
 
-                userModel.RefreshToken ??= new RefreshTokenModel();
+            if (userModel is null)
+                throw new NullReferenceException("Could not find user.");
 
-                userModel.RefreshToken.Token = refreshToken.Token;
-                userModel.RefreshToken.CreationDate = refreshToken.CreationDate;
-                userModel.RefreshToken.ExpirationDate = refreshToken.ExpirationDate;
+            userModel.RefreshToken ??= new RefreshTokenModel();
 
-                await _userData.UpdateUser(userModel, user.Id);
+            userModel.RefreshToken.Token = refreshToken.Token;
+            userModel.RefreshToken.CreationDate = refreshToken.CreationDate;
+            userModel.RefreshToken.ExpirationDate = refreshToken.ExpirationDate;
+
+            await _userData.UpdateUser(userModel, user.Id);
 
         }
 
@@ -132,7 +128,7 @@ namespace AuthenticationService
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:SecretKey").Value)),
                 ValidateLifetime = false, //here we are saying that we don't care about the token's expiration date
-                
+
             };
             var tokenHandler = new JwtSecurityTokenHandler();
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);

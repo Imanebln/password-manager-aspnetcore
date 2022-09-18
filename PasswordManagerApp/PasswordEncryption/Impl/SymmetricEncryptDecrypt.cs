@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNet.Identity;
-using PasswordEncryption.Contracts;
+﻿using PasswordEncryption.Contracts;
 using System.Security.Cryptography;
 using System.Text;
-using System;
 
 namespace PasswordEncryption.Impl
 {
@@ -10,7 +8,7 @@ namespace PasswordEncryption.Impl
     {
         public (string Key, string IVBase64) InitSymmetricEncryptionKeyIV()
         {
-            var key = GetEncodedRandomString(16); 
+            var key = GetEncodedRandomString(16);
             Aes cipher = CreateCipher(key);
             var IVBase64 = Convert.ToBase64String(cipher.IV);
             return (key, IVBase64);
@@ -42,7 +40,7 @@ namespace PasswordEncryption.Impl
         /// <param name="IV">Base64 IV string/param>
         /// <param name="key">Base64 key</param>
         /// <returns>Returns a string</returns>
-        public string Decrypt(string encryptedText,string IV, string key)
+        public string Decrypt(string encryptedText, string IV, string key)
         {
             Aes cipher = CreateCipher(key);
             cipher.IV = Convert.FromBase64String(IV);
@@ -123,7 +121,7 @@ namespace PasswordEncryption.Impl
         /// <param name="userKey">User key to encrypt</param>
         /// <param name="encryptionKey">Encryption key used to encrypt the user key.</param>
         /// <returns>string of encrypted user key.</returns>
-        public string EncryptUserKey(string userKey,string derivedKey, string encryptionIVBase64)
+        public string EncryptUserKey(string userKey, string derivedKey, string encryptionIVBase64)
         {
             //TODO: Implement method
             return Encrypt(userKey, encryptionIVBase64, derivedKey);
@@ -136,9 +134,9 @@ namespace PasswordEncryption.Impl
         /// <param name="decryptionKey">Encryption key used to decrypt the user key.</param>
         /// <returns>string of decrypted user key.</returns>
         public string DecryptUserKey(string encryptedUserKey, string derivedKey, string encryptionIVBase64)
-        { 
+        {
             //TODO: Implement method.
-            return Decrypt(encryptedUserKey,encryptionIVBase64, derivedKey); 
+            return Decrypt(encryptedUserKey, encryptionIVBase64, derivedKey);
         }
     }
 }

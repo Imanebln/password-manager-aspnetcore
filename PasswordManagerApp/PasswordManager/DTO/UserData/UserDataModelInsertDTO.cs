@@ -1,6 +1,4 @@
-﻿using Data.Models;
-
-namespace PasswordManager.DTO.UserData
+﻿namespace PasswordManager.DTO.UserData
 {
     public class UserDataModelInsertDTO
     {

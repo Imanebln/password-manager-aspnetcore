@@ -1,20 +1,20 @@
 using AuthenticationService;
+using Data.DataAccess;
 using Data.Models;
+using Data.Models.Email;
 using Data.Settings;
-using Serilog;
-using PasswordEncryption.Contracts;
-using PasswordEncryption.Impl;
 using EmailingService.Contracts;
 using EmailingService.Impl;
-using Data.Models.Email;
-using Microsoft.AspNetCore.Identity;
-using Data.DataAccess;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Filters;
+using PasswordEncryption.Contracts;
+using PasswordEncryption.Impl;
 using PasswordManager.ActionFilters;
+using Serilog;
+using Swashbuckle.AspNetCore.Filters;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,9 +41,10 @@ builder.Services.AddSwaggerGen(options =>
 var mongoDbConfig = builder.Configuration.GetSection(nameof(MongoDbConfig)).Get<MongoDbConfig>();
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(
-    opt => {
+    opt =>
+    {
         opt.SignIn.RequireConfirmedEmail = true;
-        
+
     })
         .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
         (
@@ -130,7 +131,7 @@ try
 {
     logger.Information("Application is starting");
     app.Run();
-    
+
 }
 catch (Exception ex)
 {
