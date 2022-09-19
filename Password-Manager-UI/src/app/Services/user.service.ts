@@ -11,7 +11,7 @@ export class UserService {
   constructor(private http: HttpClient) { }
 
   // get current user data
-  getCurrrentUser(){
+  getCurrrentUserData(){
     return this.http.get(this.apiUrl + 'Data/get-current-user-data');
   }
 
