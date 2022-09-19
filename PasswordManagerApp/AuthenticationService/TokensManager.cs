@@ -92,7 +92,9 @@ namespace AuthenticationService
             var cookieOption = new CookieOptions
             {
                 HttpOnly = true,
-                Expires = refreshToken.ExpirationDate
+                Expires = refreshToken.ExpirationDate,
+                Secure = true,
+                SameSite = SameSiteMode.None
             };
 
             _httpContext.HttpContext.Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOption);

@@ -131,7 +131,9 @@ namespace PasswordManager.Controllers
                 var cookieOption = new CookieOptions
                 {
                     HttpOnly = true,
-                    Expires = refreshToken.ExpirationDate
+                    Expires = refreshToken.ExpirationDate,
+                    Secure = true,
+                    SameSite = SameSiteMode.None
                 };
 
                 _httpContext.HttpContext!.Response.Cookies.Append("decryptionKey", decryptedKey, cookieOption);
