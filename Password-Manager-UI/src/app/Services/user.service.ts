@@ -12,7 +12,7 @@ export class UserService {
 
   // get current user data
   getCurrrentUserData(){
-    return this.http.get(this.apiUrl + 'Data/get-current-user-data');
+    return this.http.get<[]>(this.apiUrl + 'Data/get-current-user-data');
   }
 
 }

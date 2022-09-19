@@ -1,3 +1,4 @@
+import { CookieService } from './../../Services/cookie.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
@@ -18,7 +19,8 @@ export class LoginComponent implements OnInit {
   
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private cookieService: CookieService
   ) { }
 
   ngOnInit(): void {
@@ -30,6 +32,8 @@ export class LoginComponent implements OnInit {
       password: new FormControl(null, [Validators.required])
     })
   }
+
+  
 
   onSubmit() {
     // calling login method in auth service
@@ -46,6 +50,20 @@ export class LoginComponent implements OnInit {
         else{
           const token = response.accessToken.accessToken;
           const data = response.accessToken.username;
+          const decryptedKey = response.decryptedKey;
+          const refreshToken = response.refreshToken.token;
+
+          this.cookieService.setCookie({
+            name: 'decryptedKey',
+            value: decryptedKey,
+            session: true,
+          });
+          this.cookieService.setCookie({
+            name: 'refreshToken',
+            value: refreshToken,
+            session: true,
+          });
+
           localStorage.setItem('jwt', token);
           localStorage.setItem('user-data',data);
           this.router.navigate(['dashboard']);
