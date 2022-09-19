@@ -1,10 +1,7 @@
-﻿using Data.Models;
-using Data.Models.Email;
+﻿using Data.Models.Email;
 using EmailingService.Contracts;
 using MailKit.Net.Smtp;
-using Microsoft.AspNetCore.Identity;
 using MimeKit;
-using System.Web;
 
 namespace EmailingService.Impl
 {

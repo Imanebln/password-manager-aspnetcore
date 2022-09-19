@@ -2,18 +2,13 @@
 using EmailingService.Contracts;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EmailingService.Impl
 {
-    public class PrettyEmail: EmailService, IPrettyEmail
+    public class PrettyEmail : EmailService, IPrettyEmail
     {
         private readonly IConfiguration _config;
-        public PrettyEmail(EmailConfiguration emailConfiguration): base(emailConfiguration)
+        public PrettyEmail(EmailConfiguration emailConfiguration) : base(emailConfiguration)
         {
             _config = new ConfigurationBuilder().AddJsonFile(@"resources\DefaultEmail.json").Build();
         }
@@ -35,11 +30,11 @@ namespace EmailingService.Impl
             email.To = to;
             await SendEmailAsync(email);
         }
-        private Email GetEmail(string EmailName,string? link)
+        private Email GetEmail(string EmailName, string? link)
         {
             Email email = new()
             {
-                Subject = getString(EmailName,"Subject")
+                Subject = getString(EmailName, "Subject")
             };
             email.EmailBody.Title = getString(EmailName, "Title");
             email.EmailBody.Message = getString(EmailName, "Message");
@@ -62,11 +57,11 @@ namespace EmailingService.Impl
             }
         }
 
-        public async Task SendPasswordReset(string to, string link,string token)
+        public async Task SendPasswordReset(string to, string link, string token)
         {
             Email email = GetEmail("PASSWORD_RESET", link);
             email.To = to;
-            email.EmailBody.Message += "\n"+token;
+            email.EmailBody.Message += "\n" + token;
             await SendEmailAsync(email);
         }
         public async Task SendEmailChange(string to, string link)
@@ -76,7 +71,7 @@ namespace EmailingService.Impl
             await SendEmailAsync(email);
         }
 
-        public async Task Send2FAToken(string to,string token)
+        public async Task Send2FAToken(string to, string token)
         {
             Email email = GetEmail("2FA_CODE", null);
             email.To = to;

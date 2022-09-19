@@ -25,7 +25,7 @@ namespace UnitTests.AuthenticationServiceTests
 
         public AuthenticationTest(ITestOutputHelper output)
         {
-            _tokensManager = new TokensManager(_configuration,_httpContext,_userManager,userData);
+            _tokensManager = new TokensManager(_configuration, _httpContext, _userManager, userData);
             _output = output;
             _user = new ApplicationUser()
             {
@@ -69,7 +69,7 @@ namespace UnitTests.AuthenticationServiceTests
             var result = _tokensManager.SetRefreshToken(_user, _refreshTokenModel);
 
             // Assert
-            Assert.Equal(_refreshTokenModel.Token,_user.RefreshToken?.Token);
+            Assert.Equal(_refreshTokenModel.Token, _user.RefreshToken?.Token);
         }
 
         [Fact]

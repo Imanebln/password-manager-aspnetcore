@@ -1,11 +1,6 @@
 ﻿using Data.Settings;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Data.DataAccess
 {
@@ -44,7 +39,7 @@ namespace Data.DataAccess
         public async Task<ReplaceOneResult> UpdateRecord<T>(string table, Guid id, T record)
         {
             var collection = _database.GetCollection<T>(table);
-             return await collection.ReplaceOneAsync(new BsonDocument("_id", id), record);
+            return await collection.ReplaceOneAsync(new BsonDocument("_id", id), record);
         }
 
         public async Task<DeleteResult> DeleteRecord<T>(string table, Guid id)
@@ -62,7 +57,7 @@ namespace Data.DataAccess
             return (await collection.FindAsync(filter)).FirstOrDefault();
         }
 
-        public async Task<ReplaceOneResult> UpdateDataByPropValue<T,U>(string table, U value, T record, string propName) where U : BsonValue
+        public async Task<ReplaceOneResult> UpdateDataByPropValue<T, U>(string table, U value, T record, string propName) where U : BsonValue
         {
             var collection = _database.GetCollection<T>(table);
             return await collection.ReplaceOneAsync(new BsonDocument(propName, value), record);
@@ -72,7 +67,7 @@ namespace Data.DataAccess
         {
             var collection = _database.GetCollection<T>(table);
             var filter = Builders<T>.Filter.Eq<U>(propName, value);
-            
+
             return await collection.DeleteOneAsync(filter);
         }
     }

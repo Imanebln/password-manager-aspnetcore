@@ -1,10 +1,4 @@
-﻿using Data.Models;
-using Data.Models.Email;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Data.Models.Email;
 
 namespace EmailingService.Contracts
 {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Data.Models
 {
@@ -18,7 +13,7 @@ namespace Data.Models
         public string NewPassword { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]
-        [Compare("NewPassword",ErrorMessage = "Passwords do not match!")]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match!")]
         public string ConfirmNewPassword { get; set; } = string.Empty;
     }
 }

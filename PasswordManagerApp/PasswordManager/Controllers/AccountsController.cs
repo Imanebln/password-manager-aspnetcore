@@ -1,12 +1,8 @@
 ﻿using AuthenticationService;
 using AuthenticationService.Models;
-using Data.DataAccess;
 using Data.Models;
-using Data.Models.Email;
 using EmailingService.Contracts;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -28,7 +24,7 @@ namespace PasswordManager.Controllers
         private readonly ILogger<AccountsController> _logger;
         private readonly ISymmetricEncryptDecrypt _encryptionService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager,RoleManager<ApplicationRole> roleManager,ITokensManager tokensManager,ILogger<AccountsController> logger,ISymmetricEncryptDecrypt encryptionService,IPrettyEmail emailSender,IHttpContextAccessor httpContext)
+        public AccountsController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ITokensManager tokensManager, ILogger<AccountsController> logger, ISymmetricEncryptDecrypt encryptionService, IPrettyEmail emailSender, IHttpContextAccessor httpContext)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -62,7 +58,7 @@ namespace PasswordManager.Controllers
                 var creatingUser = await _userManager.CreateAsync(appUser, userDto.Password);
                 if (creatingUser.Succeeded)
                 {
-                    
+
                     if (!await _roleManager.RoleExistsAsync(UserRoles.REGULAR))
                         await _roleManager.CreateAsync(new ApplicationRole() { Name = UserRoles.REGULAR });
 
@@ -75,14 +71,14 @@ namespace PasswordManager.Controllers
 
                     // Send confirmation link
                     await ValidationEmail(appUser);
-                    
+
 
                     return Ok("User Created Successfully, please confirm email");
-                }                  
+                }
                 else
                 {
                     foreach (var error in creatingUser.Errors)
-                        ModelState.AddModelError(error.Code , error.Description);
+                        ModelState.AddModelError(error.Code, error.Description);
                 }
             }
 
@@ -104,7 +100,7 @@ namespace PasswordManager.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByNameAsync(loginDto.Username);
                 if (user is null)
@@ -112,11 +108,11 @@ namespace PasswordManager.Controllers
 
                 _logger.LogInformation("Attempting to verify user's credentials");
 
-                var isUserValid = await _userManager.CheckPasswordAsync(user,loginDto.Password);
-                if(!isUserValid)
+                var isUserValid = await _userManager.CheckPasswordAsync(user, loginDto.Password);
+                if (!isUserValid)
                     return Unauthorized("Wrong username or password");
 
-                if(!await _userManager.IsEmailConfirmedAsync(user))
+                if (!await _userManager.IsEmailConfirmedAsync(user))
                     return BadRequest("Please confirm your email");
                 if (await _userManager.IsLockedOutAsync(user))
                     return BadRequest("Please reset your password or try again later");
@@ -140,20 +136,20 @@ namespace PasswordManager.Controllers
 
                 _httpContext.HttpContext!.Response.Cookies.Append("decryptionKey", decryptedKey, cookieOption);
 
-                
+
                 try
                 {
                     await _tokensManager.SetRefreshToken(user, refreshToken);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
                 }
-                
+
 
                 _logger.LogInformation("Attempting to generate access token");
                 var accessToken = await _tokensManager.GenerateToken(user);
-                
+
 
                 return Ok(new
                 {
@@ -180,7 +176,7 @@ namespace PasswordManager.Controllers
             {
                 return Unauthorized("Access token is corrupted.");
             }
-            
+
             var userName = principal.Identity!.Name;
 
             var user = await _userManager.FindByNameAsync(userName);
@@ -191,7 +187,7 @@ namespace PasswordManager.Controllers
 
             refreshToken ??= apiModel.RefreshToken;
 
-            if (user.RefreshToken is null ||  !user.RefreshToken.Token.Equals(refreshToken))
+            if (user.RefreshToken is null || !user.RefreshToken.Token.Equals(refreshToken))
                 return Unauthorized("Invalid refresh token");
             if (user.RefreshToken.ExpirationDate < DateTime.Now)
                 return Unauthorized("Refresh Token Expired");
@@ -207,7 +203,7 @@ namespace PasswordManager.Controllers
             });
         }
 
-        [HttpGet("revoke-refresh-token"),Authorize]
+        [HttpGet("revoke-refresh-token"), Authorize]
         public async Task<IActionResult> RevokeRefreshToken()
         {
             var userName = _httpContext.HttpContext!.User.Identity!.Name;
@@ -220,7 +216,7 @@ namespace PasswordManager.Controllers
             {
                 await _tokensManager.RevokeRefreshToken(user);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
@@ -244,7 +240,7 @@ namespace PasswordManager.Controllers
         }
 
         [HttpGet("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail(string token,string email)
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
         {
             //check if user exists
             var user = await _userManager.FindByEmailAsync(email);
@@ -253,7 +249,7 @@ namespace PasswordManager.Controllers
 
             _logger.LogInformation("Attempting to verify email");
             //confirm email via received token and email
-           var result =  await _userManager.ConfirmEmailAsync(user, token);
+            var result = await _userManager.ConfirmEmailAsync(user, token);
 
             if (result.Succeeded)
                 return Redirect("http://localhost:4200/login");
@@ -263,7 +259,7 @@ namespace PasswordManager.Controllers
 
         }
 
-        
+
 
         [HttpPost("request-password-reset")]
         public async Task<IActionResult> RequestNewPassword(RequestPasswordResetModel requestPasswordResetModel)
@@ -301,13 +297,13 @@ namespace PasswordManager.Controllers
         {
             var user = await _userManager.FindByEmailAsync(emailChangeModel.Email);
 
-            if(user is null)
+            if (user is null)
                 return NotFound("User not found");
 
             var token = await _userManager.GenerateChangeEmailTokenAsync(user, emailChangeModel.NewEmail);
 
             token = HttpUtility.UrlEncode(token);
-            var confirmationLink = String.Format("https://localhost:7077/api/Accounts/confirm-email-change?token={0}&oldemail={1}&newemail={2}", token,user.Email,emailChangeModel.NewEmail);
+            var confirmationLink = String.Format("https://localhost:7077/api/Accounts/confirm-email-change?token={0}&oldemail={1}&newemail={2}", token, user.Email, emailChangeModel.NewEmail);
 
             await _emailSender.SendEmailChange(user.Email, confirmationLink);
 
@@ -315,14 +311,14 @@ namespace PasswordManager.Controllers
         }
 
         [HttpGet("confirm-email-change")]
-        public async Task<IActionResult> ConfirmEmailChange(string token,string oldEmail,string newEmail)
+        public async Task<IActionResult> ConfirmEmailChange(string token, string oldEmail, string newEmail)
         {
             var user = await _userManager.FindByEmailAsync(oldEmail);
             if (user is null)
                 return NotFound("User not found");
 
-            var result = await _userManager.ChangeEmailAsync(user,newEmail,token);
-            if(result.Succeeded)
+            var result = await _userManager.ChangeEmailAsync(user, newEmail, token);
+            if (result.Succeeded)
                 return Ok("Email successfully changed");
 
             return BadRequest(result.Errors);
@@ -330,7 +326,7 @@ namespace PasswordManager.Controllers
 
 
 
-        [HttpGet("Set-2fa"),Authorize]
+        [HttpGet("Set-2fa"), Authorize]
         public async Task<IActionResult> Set2FA(bool enabled)
         {
             var userName = _httpContext.HttpContext!.User.Identity!.Name;
@@ -360,7 +356,7 @@ namespace PasswordManager.Controllers
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
             await _emailSender.Send2FAToken(user.Email, token);
 
-            return Ok(new { Is2FARequired = true, Provider = "Email",Username = user.UserName });
+            return Ok(new { Is2FARequired = true, Provider = "Email", Username = user.UserName });
         }
 
         [HttpPost("2fa-login")]
@@ -391,8 +387,8 @@ namespace PasswordManager.Controllers
                 refreshToken
             });
         }
-        
-        
+
+
 
     }
 }

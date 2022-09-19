@@ -1,11 +1,12 @@
 ﻿using Data.DataAccess;
 using Data.Models;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PasswordEncryption.Contracts;
 using PasswordManager.ActionFilters;
+using PasswordManager.DTO.UserData;
 
 namespace PasswordManager.Controllers
 {
@@ -19,7 +20,7 @@ namespace PasswordManager.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ISymmetricEncryptDecrypt _symmetricEncryptDecrypt;
 
-        public DataController(IUserDataRepository userData, IHttpContextAccessor httpContext, UserManager<ApplicationUser> userManager, ISymmetricEncryptDecrypt symmetricEncryptDecrypt )
+        public DataController(IUserDataRepository userData, IHttpContextAccessor httpContext, UserManager<ApplicationUser> userManager, ISymmetricEncryptDecrypt symmetricEncryptDecrypt)
         {
             _userData = userData;
             _httpContext = httpContext;
@@ -28,13 +29,13 @@ namespace PasswordManager.Controllers
         }
 
 
-        [HttpGet("get-current-user-data"),Authorize]
+        [HttpGet("get-current-user-data"), Authorize]
         public async Task<ActionResult<UserDataModel>> GetCurrentUserData()
         {
             var user = HttpContext.Items["user"] as ApplicationUser;
 
             var userData = await _userData.GetDataByUserId(user.Id);
-            if(userData is null)
+            if (userData is null)
                 return NotFound("Could not find any data");
 
             var decryptionKey = Request.Cookies["decryptionKey"];
@@ -48,8 +49,8 @@ namespace PasswordManager.Controllers
             return Ok(userData);
         }
 
-        [HttpPost("insert-current-user-data"),Authorize]
-        public async Task<ActionResult> InsertCurrentUserData(UserDataModel userDataModel)
+        [HttpPost("insert-current-user-data"), Authorize]
+        public async Task<ActionResult> InsertCurrentUserData(UserDataModelInsertDTO userDataModelDTO)
         {
             var user = HttpContext.Items["user"] as ApplicationUser;
 
@@ -63,11 +64,13 @@ namespace PasswordManager.Controllers
             if (encryptionKey is null)
                 return BadRequest("An error occured");
 
+            var userDataModel = userDataModelDTO.Adapt<UserDataModel>();
+
             IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
 
             // Encrypt all passwords
             if (userDataModel.AccountInfos is not null)
-                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid();  ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
+                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
 
             userDataModel.UserId = user.Id;
 
@@ -77,7 +80,7 @@ namespace PasswordManager.Controllers
             return Ok(userDataModel);
         }
 
-        [HttpPut("update-current-user-data"),Authorize]
+        [HttpPut("update-current-user-data"), Authorize]
         public async Task<IActionResult> UpdateCurrentUserData(UserDataModel userDataModel)
         {
             var user = HttpContext.Items["user"] as ApplicationUser;
@@ -86,10 +89,10 @@ namespace PasswordManager.Controllers
             if (oldUserData is null)
                 return NotFound("Could not find older data.");
 
-            if(oldUserData.UserId != userDataModel.UserId)
+            if (oldUserData.UserId != userDataModel.UserId)
                 return BadRequest("You cannot change id of user");
 
-            
+
 
             if (oldUserData.Id != userDataModel.Id)
                 return BadRequest("You cannot change id of a record");
@@ -104,15 +107,15 @@ namespace PasswordManager.Controllers
             IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
 
             // We encrypt newly Inserted data
-            if(userDataModel.AccountInfos is not null && userDataModel.AccountInfos.Any())
-                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.Id = Guid.NewGuid(); ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
+            if (userDataModel.AccountInfos is not null && userDataModel.AccountInfos.Any())
+                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
 
             await _userData.UpdateData(userDataModel, oldUserData.Id);
 
             return NoContent();
         }
 
-        [HttpDelete("delete-current-user-data"),Authorize]
+        [HttpDelete("delete-current-user-data"), Authorize]
         public async Task<IActionResult> DeleteCurrentUserData()
         {
             var user = HttpContext.Items["user"] as ApplicationUser;

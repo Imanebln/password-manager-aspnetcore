@@ -1,9 +1,4 @@
 ﻿using Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Data.DataAccess
 {
@@ -58,7 +53,7 @@ namespace Data.DataAccess
 
         public async Task DeleteDataByUserId(Guid id)
         {
-            await _dataAccess.DeleteRecordByPropValue<UserDataModel,Guid>("Users_data", id, "UserId");
+            await _dataAccess.DeleteRecordByPropValue<UserDataModel, Guid>("Users_data", id, "UserId");
         }
 
     }

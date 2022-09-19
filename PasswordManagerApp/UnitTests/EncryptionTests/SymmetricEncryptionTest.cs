@@ -15,7 +15,7 @@ namespace UnitTests.EncryptionTests
         public SymmetricEncryptionTest()
         {
             _encryptionService = new SymmetricEncryptDecrypt();
-            (Key,IVBase64) = _encryptionService.InitSymmetricEncryptionKeyIV();
+            (Key, IVBase64) = _encryptionService.InitSymmetricEncryptionKeyIV();
             password = "imane123@";
         }
 
@@ -27,9 +27,9 @@ namespace UnitTests.EncryptionTests
 
             // Assert
             Assert.IsType<(string Key, string IVBase64)>(result);
-            
+
         }
-        
+
         [Fact, Priority(2)]
         public string EncryptTest()
         {
@@ -49,9 +49,9 @@ namespace UnitTests.EncryptionTests
 
             // Assert
             Assert.IsType<string>(result);
-            Assert.Equal(password,result);
+            Assert.Equal(password, result);
         }
-        
+
 
     }
 }
