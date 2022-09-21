@@ -24,7 +24,7 @@ namespace PasswordManager.ActionFilters
             }
             else
             {
-                context.HttpContext.Items.Add("user", user);
+                context.HttpContext.Items.Add(nameof(user), user);
             }
 
             await next();
