@@ -12,6 +12,9 @@ using Microsoft.OpenApi.Models;
 using PasswordEncryption.Contracts;
 using PasswordEncryption.Impl;
 using PasswordManager.ActionFilters;
+using PasswordManager.Middlewares;
+using PDFService.contracts;
+using PDFService.impl;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
@@ -59,8 +62,14 @@ builder.Services.AddSingleton<IMongoDbDataAccess, MongoDbDataAccess>();
 // Inject userDataRepository
 builder.Services.AddSingleton<IUserDataRepository, UserDataRepository>();
 
+// inject pdf service 
+
+builder.Services.AddScoped<IDataSummary,DataSummary>();
+
+
 //Registered Action filter
 builder.Services.AddScoped<GetCurrentUserActionFilter>();
+builder.Services.AddScoped<GetUserEncryptionKeyActionFilter>();
 
 builder.Services.AddHttpContextAccessor();
 //creating a logger from configuration
@@ -120,7 +129,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

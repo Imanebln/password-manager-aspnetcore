@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using PasswordEncryption.Contracts;
 using PasswordManager.ActionFilters;
 using PasswordManager.DTO.UserData;
+using PDFService.contracts;
 
 namespace PasswordManager.Controllers
 {
     [ServiceFilter(typeof(GetCurrentUserActionFilter))]
+    [ServiceFilter(typeof(GetUserEncryptionKeyActionFilter))]
     [Route("api/[controller]")]
     [ApiController]
     public class DataController : ControllerBase
@@ -19,13 +21,19 @@ namespace PasswordManager.Controllers
         private readonly IHttpContextAccessor _httpContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ISymmetricEncryptDecrypt _symmetricEncryptDecrypt;
+        private readonly IDataSummary _dataSummary;
 
-        public DataController(IUserDataRepository userData, IHttpContextAccessor httpContext, UserManager<ApplicationUser> userManager, ISymmetricEncryptDecrypt symmetricEncryptDecrypt)
+        public DataController(IUserDataRepository userData,
+                              IHttpContextAccessor httpContext,
+                              UserManager<ApplicationUser> userManager,
+                              ISymmetricEncryptDecrypt symmetricEncryptDecrypt,
+                              IDataSummary dataSummary)
         {
             _userData = userData;
             _httpContext = httpContext;
             _userManager = userManager;
             _symmetricEncryptDecrypt = symmetricEncryptDecrypt;
+            _dataSummary = dataSummary;
         }
 
 
@@ -123,6 +131,39 @@ namespace PasswordManager.Controllers
             await _userData.DeleteDataByUserId(user.Id);
 
             return NoContent();
+        }
+
+        [HttpGet("generate-pdf-summary"),Authorize]
+        public async Task<IActionResult> GenerateUserDataSummaryPDF()
+        {
+            var user = HttpContext.Items["user"] as ApplicationUser;
+            var encryptionKey = HttpContext.Items["encryptionKey"] as string;
+
+            var fileBytes = await _dataSummary.GeneratePDFSummary(user, encryptionKey);
+
+            return File(fileBytes,"application/pdf","summary.pdf");
+        }
+
+        [HttpGet("generate-images-summary"),Authorize]
+        public async Task<IActionResult> GenerateUserDataSummaryImages()
+        {
+            var user = HttpContext.Items["user"] as ApplicationUser;
+            var encryptionKey = HttpContext.Items["encryptionKey"] as string;
+
+            var fileBytes = await _dataSummary.GenerateImageSummary(user, encryptionKey);
+
+            return File(fileBytes.First(), "image/png", "summary.png");
+        }
+
+        [HttpGet("generate-text-summary"),Authorize]
+        public async Task<IActionResult> GenerateUserDataSummaryText()
+        {
+            var user = HttpContext.Items["user"] as ApplicationUser;
+            var encryptionKey = HttpContext.Items["encryptionKey"] as string;
+
+            var fileBytes = await _dataSummary.GenerateTextFileSummary(user, encryptionKey);
+
+            return File(fileBytes, "text/plain", "summary.txt");
         }
     }
 }
