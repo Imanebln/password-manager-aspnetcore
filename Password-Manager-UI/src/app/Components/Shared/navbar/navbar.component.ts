@@ -13,8 +13,7 @@ export class NavbarComponent implements OnInit {
   user: any;
   constructor(
     private router: Router,
-    private userService: UserService,
-    private cookieService: CookieService
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -25,8 +24,6 @@ export class NavbarComponent implements OnInit {
   logout(){
     localStorage.removeItem('jwt');
     localStorage.removeItem('user-data');
-    this.cookieService.deleteCookie('decryptedKey');
-    this.cookieService.deleteCookie('refreshToken');
     this.router.navigate(['/login']);
   }
 

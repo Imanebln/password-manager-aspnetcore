@@ -7,12 +7,18 @@ import { environment } from 'src/environments/environment';
 })
 export class UserService {
   apiUrl: string = environment.apiUrl;
+  
+  httpOptions = {
+    withCredentials: true
+  };
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient
+    ) { }
+    
 
   // get current user data
   getCurrrentUserData(){
-    return this.http.get<[]>(this.apiUrl + 'Data/get-current-user-data');
+    return this.http.get<[]>(this.apiUrl + 'Data/get-current-user-data',this.httpOptions);
   }
 
 }

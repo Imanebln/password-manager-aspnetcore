@@ -19,8 +19,7 @@ export class LoginComponent implements OnInit {
   
   constructor(
     private router: Router,
-    private authService: AuthService,
-    private cookieService: CookieService
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -50,19 +49,6 @@ export class LoginComponent implements OnInit {
         else{
           const token = response.accessToken.accessToken;
           const data = response.accessToken.username;
-          const decryptedKey = response.decryptedKey;
-          const refreshToken = response.refreshToken.token;
-
-          this.cookieService.setCookie({
-            name: 'decryptedKey',
-            value: decryptedKey,
-            session: true,
-          });
-          this.cookieService.setCookie({
-            name: 'refreshToken',
-            value: refreshToken,
-            session: true,
-          });
 
           localStorage.setItem('jwt', token);
           localStorage.setItem('user-data',data);

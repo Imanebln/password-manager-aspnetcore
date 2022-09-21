@@ -10,6 +10,7 @@ import { UserService } from 'src/app/Services/user.service';
 })
 export class PasswordsListComponent implements OnInit {
 
+  passwordsList: any;
   constructor(
     private userservice: UserService
   ) { }
@@ -25,7 +26,9 @@ export class PasswordsListComponent implements OnInit {
   getCurrentUserData(){
     this.userservice.getCurrrentUserData().subscribe({
       next: (res: any) => {
-        console.log(res);
+        this.passwordsList = res.accountInfos;
+        console.log(res.accountInfos);
+        console.log(this.passwordsList);
       },
       error: (err: HttpErrorResponse) => {
         console.log(err);
