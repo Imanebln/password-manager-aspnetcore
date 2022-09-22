@@ -49,8 +49,10 @@ export class LoginComponent implements OnInit {
         else{
           const token = response.accessToken.accessToken;
           const data = response.accessToken.username;
+          const refreshToken = response.refreshToken.token;
 
           localStorage.setItem('jwt', token);
+          localStorage.setItem('refreshToken',refreshToken);
           localStorage.setItem('user-data',data);
           this.router.navigate(['dashboard']);
         }
