@@ -200,8 +200,8 @@ namespace PasswordManager.Controllers
 
             return Ok(new
             {
-                accessToken = token,
-                refreshToken = newRefreshToken
+                accessToken = token.AccessToken,
+                refreshToken = newRefreshToken.Token
             });
         }
 
