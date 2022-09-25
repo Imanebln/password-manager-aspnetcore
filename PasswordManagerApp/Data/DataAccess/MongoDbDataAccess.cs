@@ -53,7 +53,7 @@ namespace Data.DataAccess
         {
             var collection = _database.GetCollection<T>(table);
             var filter = Builders<T>.Filter.Eq(propName, value);
-
+            var f = await collection.FindAsync(filter);
             return (await collection.FindAsync(filter)).FirstOrDefault();
         }
 

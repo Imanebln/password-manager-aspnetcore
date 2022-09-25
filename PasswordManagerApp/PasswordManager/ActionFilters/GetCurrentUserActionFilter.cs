@@ -16,8 +16,9 @@ namespace PasswordManager.ActionFilters
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             var userName = context.HttpContext.User.Identity.Name;
-            var user = await _userManager.FindByNameAsync(userName);
 
+            var user = await _userManager.FindByNameAsync(userName);
+            
             if (user is null)
             {
                 context.Result = new NotFoundResult();

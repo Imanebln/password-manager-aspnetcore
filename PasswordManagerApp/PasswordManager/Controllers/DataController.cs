@@ -18,110 +18,26 @@ namespace PasswordManager.Controllers
     public class DataController : ControllerBase
     {
         private readonly IUserDataRepository _userData;
-        private readonly IHttpContextAccessor _httpContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ISymmetricEncryptDecrypt _symmetricEncryptDecrypt;
         private readonly IDataSummary _dataSummary;
+        private readonly IUserVaultRepository _userVault;
 
         public DataController(IUserDataRepository userData,
-                              IHttpContextAccessor httpContext,
                               UserManager<ApplicationUser> userManager,
                               ISymmetricEncryptDecrypt symmetricEncryptDecrypt,
-                              IDataSummary dataSummary)
+                              IDataSummary dataSummary,
+                              IUserVaultRepository userVault)
         {
             _userData = userData;
-            _httpContext = httpContext;
             _userManager = userManager;
             _symmetricEncryptDecrypt = symmetricEncryptDecrypt;
             _dataSummary = dataSummary;
+            _userVault = userVault;
         }
 
 
-        [HttpGet("get-current-user-data"), Authorize]
-        public async Task<ActionResult<UserDataModel>> GetCurrentUserData()
-        {
-            var user = HttpContext.Items["user"] as ApplicationUser;
 
-            var userData = await _userData.GetDataByUserId(user.Id);
-            if (userData is null)
-                return NotFound("Could not find any data");
-
-            var decryptionKey = Request.Cookies["decryptionKey"];
-
-            if (decryptionKey is null)
-                return BadRequest("An error occured");
-            // We decrypt user data.
-            if (userData.AccountInfos is not null && userData.AccountInfos.Any())
-                userData.AccountInfos = userData.AccountInfos.Select(ai => { ai.EncryptedPassword = _symmetricEncryptDecrypt.Decrypt(ai.EncryptedPassword, ai.EncryptedPasswordIV, decryptionKey); return ai; });
-
-            return Ok(userData);
-        }
-
-        [HttpPost("insert-current-user-data"), Authorize]
-        public async Task<ActionResult> InsertCurrentUserData(UserDataModelInsertDTO userDataModelDTO)
-        {
-            var user = HttpContext.Items["user"] as ApplicationUser;
-
-            var oldeData = await _userData.GetDataByUserId(user.Id);
-            if (oldeData is not null)
-                return BadRequest("A user cannot have multiple data.");
-
-            var encryptionKey = Request.Cookies["decryptionKey"];
-            string IVKey = string.Empty;
-
-            if (encryptionKey is null)
-                return BadRequest("An error occured");
-
-            var userDataModel = userDataModelDTO.Adapt<UserDataModel>();
-
-            IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
-
-            // Encrypt all passwords
-            if (userDataModel.AccountInfos is not null)
-                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
-
-            userDataModel.UserId = user.Id;
-
-
-            await _userData.InsertData(userDataModel);
-
-            return Ok(userDataModel);
-        }
-
-        [HttpPut("update-current-user-data"), Authorize]
-        public async Task<IActionResult> UpdateCurrentUserData(UserDataModel userDataModel)
-        {
-            var user = HttpContext.Items["user"] as ApplicationUser;
-
-            var oldUserData = await _userData.GetDataByUserId(user.Id);
-            if (oldUserData is null)
-                return NotFound("Could not find older data.");
-
-            if (oldUserData.UserId != userDataModel.UserId)
-                return BadRequest("You cannot change id of user");
-
-
-
-            if (oldUserData.Id != userDataModel.Id)
-                return BadRequest("You cannot change id of a record");
-
-
-            var encryptionKey = Request.Cookies["decryptionKey"];
-            string IVKey = string.Empty;
-
-            if (encryptionKey is null)
-                return BadRequest("An error occured");
-
-            IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
-
-            // We encrypt newly Inserted data
-            if (userDataModel.AccountInfos is not null && userDataModel.AccountInfos.Any())
-                userDataModel.AccountInfos = userDataModel.AccountInfos.Select(ai => { ai.EncryptedPasswordIV = IVKey; ai.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(ai.EncryptedPassword, IVKey, encryptionKey); return ai; });
-
-            await _userData.UpdateData(userDataModel, oldUserData.Id);
-
-            return NoContent();
-        }
 
         [HttpDelete("delete-current-user-data"), Authorize]
         public async Task<IActionResult> DeleteCurrentUserData()
@@ -164,6 +80,95 @@ namespace PasswordManager.Controllers
             var fileBytes = await _dataSummary.GenerateTextFileSummary(user, encryptionKey);
 
             return File(fileBytes, "text/plain", "summary.txt");
+        }
+
+        [HttpGet("passwords/{id}"),Authorize]
+        public async Task<IActionResult> GetPasswordById(Guid id)
+        {
+            var user = HttpContext.Items["user"] as ApplicationUser;
+            var encryptionKey = Request.Cookies["decryptionKey"];
+
+            if (encryptionKey is null)
+                return BadRequest("An error occured");
+
+
+
+            var result = await _userVault.GetPasswordById(id,user.Id);
+            if (result is null)
+                return NotFound("Password not found");
+
+            result.EncryptedPassword = _symmetricEncryptDecrypt.Decrypt(result.EncryptedPassword, result.EncryptedPasswordIV, encryptionKey);
+            return Ok(result);
+        }
+
+        [HttpGet("passwords"), Authorize]
+        public async Task<IActionResult> GetAllPasswords()
+        {
+            var user = HttpContext.Items["user"] as ApplicationUser;
+            var encryptionKey = HttpContext.Items["encryptionKey"] as string;
+
+            var result = await _userVault.GetUserVault(user.Id);
+            result = result.Select(p => { p.EncryptedPassword = _symmetricEncryptDecrypt.Decrypt(p.EncryptedPassword, p.EncryptedPasswordIV, encryptionKey); return p; });
+            return Ok(result);
+        }
+
+        [HttpPut("passwords"), Authorize]
+        public async Task<IActionResult> UpdatePasswordById(Guid id,AccountInfosModel accountsInfos)
+        {
+            if (!id.Equals(accountsInfos.Id))
+                return BadRequest("Cannot change id of an entity.");
+
+            var user = HttpContext.Items["user"] as ApplicationUser;
+            var encryptionKey = Request.Cookies["decryptionKey"];
+            string IVKey;
+
+            if (encryptionKey is null)
+                return BadRequest("An error occured");
+
+            var oldPassword = await _userVault.GetPasswordById(id, user.Id);
+
+            if (oldPassword is null)
+                return NotFound(String.Format("The password with id {0} is not found.", id));
+
+            accountsInfos.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(accountsInfos.EncryptedPassword,accountsInfos.EncryptedPasswordIV,encryptionKey);
+
+
+            await _userVault.UpdatePasswordById(id, user.Id,accountsInfos);
+            return StatusCode(StatusCodes.Status202Accepted);
+        }
+
+        [HttpPost("passwords"), Authorize]
+        public async Task<IActionResult> InsertPassword(AccountsInfosModelInsertDTO accountsInfosDto)
+        {
+            var user = HttpContext.Items["user"] as ApplicationUser;
+
+            var encryptionKey = Request.Cookies["decryptionKey"];
+            string IVKey;
+
+            if (encryptionKey is null)
+                return BadRequest("An error occured");
+
+            var accountsInfosModel = accountsInfosDto.Adapt<AccountInfosModel>();
+
+            IVKey = _symmetricEncryptDecrypt.GenerateIVFromKey(encryptionKey);
+            accountsInfosModel.EncryptedPasswordIV = IVKey;
+
+            // Encrypt password
+            accountsInfosModel.EncryptedPassword = _symmetricEncryptDecrypt.Encrypt(accountsInfosModel.EncryptedPassword, IVKey, encryptionKey);
+
+
+            await _userVault.InsertPassword(accountsInfosModel, user.Id);
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [HttpDelete("passwords/{id}"),Authorize]
+        public async Task<IActionResult> DeletePasswordById(Guid id)
+        {
+            var user = HttpContext.Items["user"] as ApplicationUser;
+
+            await _userVault.DeletePassword(id, user.Id);
+
+            return NoContent();
         }
     }
 }
