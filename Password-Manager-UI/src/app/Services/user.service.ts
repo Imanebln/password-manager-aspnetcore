@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 
@@ -18,7 +18,19 @@ export class UserService {
 
   // get current user data
   getCurrrentUserData(){
-    return this.http.get<[]>(this.apiUrl + 'Data/get-current-user-data',this.httpOptions);
+    return this.http.get<[]>(this.apiUrl + 'Data/passwords',this.httpOptions);
   }
+
+  // add new password to user data
+  newPassword(model: any){
+    return this.http.post(this.apiUrl + 'Data/passwords',model,this.httpOptions);
+  }
+
+  // generate pdf summary
+  generatePdfSummary(){
+    let headers = new HttpHeaders();
+    headers = headers.set('Accept', 'application/pdf');
+    return this.http.get(this.apiUrl + 'Data/generate-pdf-summary',{ headers: headers, responseType: 'blob',withCredentials: true });
+  }  
 
 }
