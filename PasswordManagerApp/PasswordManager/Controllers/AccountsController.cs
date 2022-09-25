@@ -1,5 +1,6 @@
 ﻿using AuthenticationService;
 using AuthenticationService.Models;
+using Data.DataAccess;
 using Data.Models;
 using EmailingService.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -21,10 +22,18 @@ namespace PasswordManager.Controllers
         private readonly ITokensManager _tokensManager;
         private readonly IPrettyEmail _emailSender;
         private readonly IHttpContextAccessor _httpContext;
+        private readonly IUserDataRepository _userData;
         private readonly ILogger<AccountsController> _logger;
         private readonly ISymmetricEncryptDecrypt _encryptionService;
 
-        public AccountsController(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ITokensManager tokensManager, ILogger<AccountsController> logger, ISymmetricEncryptDecrypt encryptionService, IPrettyEmail emailSender, IHttpContextAccessor httpContext)
+        public AccountsController(UserManager<ApplicationUser> userManager,
+                                  RoleManager<ApplicationRole> roleManager,
+                                  ITokensManager tokensManager,
+                                  ILogger<AccountsController> logger,
+                                  ISymmetricEncryptDecrypt encryptionService,
+                                  IPrettyEmail emailSender,
+                                  IHttpContextAccessor httpContext,
+                                  IUserDataRepository userData)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -33,6 +42,7 @@ namespace PasswordManager.Controllers
             _encryptionService = encryptionService;
             _emailSender = emailSender;
             _httpContext = httpContext;
+            _userData = userData;
         }
 
         [HttpPost("signup")]
@@ -253,11 +263,21 @@ namespace PasswordManager.Controllers
             //confirm email via received token and email
             var result = await _userManager.ConfirmEmailAsync(user, token);
 
-            if (result.Succeeded)
-                return Redirect("http://localhost:4200/login");
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Email not confirmed");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Could not confirm email");
+            }
 
-            _logger.LogError("Email not confirmed");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Could not confirm email");
+            var userDataModel = new UserDataModel
+            {
+                AccountInfos = new List<AccountInfosModel>(),
+                UserId = user.Id
+            };
+
+            await _userData.InsertData(userDataModel);
+
+            return Redirect("http://localhost:4200/login");
 
         }
 

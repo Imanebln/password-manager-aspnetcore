@@ -59,8 +59,13 @@ builder.Services.AddSingleton(mongoDbConfig);
 
 // Inject Mongodb Data Access repo
 builder.Services.AddSingleton<IMongoDbDataAccess, MongoDbDataAccess>();
+
+
 // Inject userDataRepository
 builder.Services.AddSingleton<IUserDataRepository, UserDataRepository>();
+builder.Services.AddSingleton<IUserVaultRepository, UserVaultRepository>();
+
+
 
 // inject pdf service 
 
