@@ -1,7 +1,8 @@
 import { UserService } from './../../Services/user.service';
 import { Router } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,7 +10,6 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-
   user: any;
   passwordsList: any;
 
@@ -42,6 +42,7 @@ export class DashboardComponent implements OnInit {
       next: (res: any) => {
         this.passwordsList = res;
         console.log(this.passwordsList);
+        saveAs(res,'summary.pdf')
       },
       error: (err: HttpErrorResponse) => {
         console.log(err);
@@ -53,3 +54,5 @@ export class DashboardComponent implements OnInit {
   
 
 }
+
+

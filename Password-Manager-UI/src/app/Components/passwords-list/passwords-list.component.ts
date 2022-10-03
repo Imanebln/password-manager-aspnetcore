@@ -3,29 +3,39 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { User } from './../../Models/User';
 import { Component, OnInit } from '@angular/core';
 import { UserService } from 'src/app/Services/user.service';
-
+import Logos from 'src/assets/logos.json';
+interface LOGOS {
+  name: string,
+  value: string
+}
 @Component({
   selector: 'app-passwords-list',
   templateUrl: './passwords-list.component.html',
   styleUrls: ['./passwords-list.component.css']
 })
 export class PasswordsListComponent implements OnInit {
+  
 
   newPasswordForm!: FormGroup;
   passwordsList: any;
   newPasswordModel: any;
   showPassword: boolean = false;
+  logos: LOGOS[] = Logos;
 
   constructor(
     private userservice: UserService
-  ) { }
+  ) { 
+    console.log(this.logos);
+    
+  }
 
   ngOnInit(): void {
     this.getCurrentUserData();
     this.newPasswordForm = new FormGroup({
       email: new FormControl(null, [Validators.required]),
       encryptedPassword: new FormControl(null, [Validators.required]),
-      name: new FormControl(null, [Validators.required])
+      name: new FormControl(null, [Validators.required]),
+      imageUrl: new FormControl(null)
     });
   }
 
@@ -49,8 +59,8 @@ export class PasswordsListComponent implements OnInit {
 
   // add new password to user data
   newPassword(){
-    this.newPasswordModel = this.newPasswordForm.value;
-    this.userservice.newPassword(this.newPasswordModel).subscribe({
+    //this.newPasswordModel = this.newPasswordForm.value;
+    this.userservice.newPassword(this.newPasswordForm.value).subscribe({
       next: (res:any) => {
         console.log(res);
       },
@@ -59,6 +69,15 @@ export class PasswordsListComponent implements OnInit {
       }
     })
     
+  }
+
+  chooseImageUrl(url:string){
+    this.logos.map( val => {
+      if(url == val.name){
+        this.newPasswordForm.value.imageUrl = val.value;
+      }
+    });
+    console.log(this.newPasswordForm.value.imageUrl);
   }
 
 }
