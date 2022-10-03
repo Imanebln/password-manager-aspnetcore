@@ -26,6 +26,11 @@ export class UserService {
     return this.http.post(this.apiUrl + 'Data/passwords',model,this.httpOptions);
   }
 
+  // delete password
+  deletePassword(id: any){
+    return this.http.delete(this.apiUrl + 'Data/passwords/' + id, this.httpOptions);
+  }
+
   // generate pdf summary
   generatePdfSummary(){
     let headers = new HttpHeaders();

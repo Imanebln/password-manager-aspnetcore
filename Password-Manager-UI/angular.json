@@ -29,13 +29,13 @@
             "styles": [
               "src/styles.css",
               "./node_modules/bootstrap/dist/css/bootstrap.css",
-              "./node_modules/bootstrap/dist/js/bootstrap.min.js",
               "./node_modules/font-awesome/css/font-awesome.css",
               "./node_modules/startbootstrap-sb-admin-2/css/sb-admin-2.css",
               "./node_modules/startbootstrap-sb-admin-2/css/sb-admin-2.min.css"
             ],
             "scripts": [
               "./node_modules/bootstrap/dist/js/bootstrap.js",
+              "./node_modules/bootstrap/dist/js/bootstrap.min.js",
               "./node_modules/jquery/dist/jquery.js",
               "./node_modules/jquery/dist/jquery.min.js",
               "./node_modules/startbootstrap-sb-admin-2/js/sb-admin-2.js",

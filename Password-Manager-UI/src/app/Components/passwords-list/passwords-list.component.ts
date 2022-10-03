@@ -1,9 +1,10 @@
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { User } from './../../Models/User';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { UserService } from 'src/app/Services/user.service';
 import Logos from 'src/assets/logos.json';
+declare var window: any;
 interface LOGOS {
   name: string,
   value: string
@@ -14,8 +15,8 @@ interface LOGOS {
   styleUrls: ['./passwords-list.component.css']
 })
 export class PasswordsListComponent implements OnInit {
-  
-
+  @ViewChild('closeModal') private closeModal!: ElementRef;
+  formModal: any;
   newPasswordForm!: FormGroup;
   passwordsList: any;
   newPasswordModel: any;
@@ -23,13 +24,17 @@ export class PasswordsListComponent implements OnInit {
   logos: LOGOS[] = Logos;
 
   constructor(
-    private userservice: UserService
+    private userservice: UserService,
   ) { 
     console.log(this.logos);
     
   }
 
   ngOnInit(): void {
+    this.formModal = new window.bootstrap.Modal(
+      document.getElementById('modalAddPassword')
+    );
+
     this.getCurrentUserData();
     this.newPasswordForm = new FormGroup({
       email: new FormControl(null, [Validators.required]),
@@ -63,13 +68,20 @@ export class PasswordsListComponent implements OnInit {
     this.userservice.newPassword(this.newPasswordForm.value).subscribe({
       next: (res:any) => {
         console.log(res);
+        window.location.reload();
+        //this.formModal.hide();
+ 
       },
       error: (err: HttpErrorResponse) => {
         console.log(err);
       }
     })
-    
   }
+
+  // close add password modal
+  // public hideModel() {
+  //   this.closeModal.nativeElement.click();
+  // }
 
   chooseImageUrl(url:string){
     this.logos.map( val => {
@@ -78,6 +90,21 @@ export class PasswordsListComponent implements OnInit {
       }
     });
     console.log(this.newPasswordForm.value.imageUrl);
+  }
+
+  // delete password
+  deletepassword(id: any){
+    this.userservice.deletePassword(id).subscribe({
+      next: (res: any) => {
+        console.log(res);
+        console.log("password deleted successfully!");
+        window.location.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        console.log(err);
+        
+      }
+    })
   }
 
 }
